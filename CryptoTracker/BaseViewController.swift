@@ -17,6 +17,7 @@ class BaseViewController<ViewModel: ViewModeling>: UIViewController {
     var onSettingsButtonTap: (() -> Void)?
     var onFavouritesButtonTap: (() -> Void)?
     var onFilterTap: (() -> Void)?
+    var popVC: (() -> Void)?
     
     var viewModel: ViewModel!
     

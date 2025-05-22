@@ -23,7 +23,10 @@ class Coordinator {
     }
 
     func start() {
-        let vc: ViewController = storyboard.instantiateViewController(withIdentifier: .vc)
+        let vm = ViewModel()
+        vm.counter = "asdasd"
+        let vc: ViewController = storyboard.instantiateViewController(withIdentifier: .vc, viewModel: vm)
+        vc.viewModel = vm
         
         vc.onFavouritesButtonTap = { [weak self] in
             guard let self = self else { return }
@@ -40,15 +43,18 @@ class Coordinator {
             showSettings()
         }
         
-        let vm = ViewModel()
-        vm.counter = "asdasd"
-        vc.viewModel = vm
-        
         navigationController.pushViewController(vc, animated: true)
     }
     
     private func showFavourites() {
-        let vc: FavouritesViewController = storyboard.instantiateViewController(withIdentifier: .favourites)
+        let vm = ViewModel()
+        let vc: FavouritesViewController = storyboard.instantiateViewController(withIdentifier: .favourites, viewModel: ViewModel())
+        vc.viewModel = vm
+        
+        vc.popVC = { [weak self] in
+            self?.navigationController.popViewController(animated: true)
+        }
+        
         navigationController.pushViewController(vc, animated: true)
     }
     

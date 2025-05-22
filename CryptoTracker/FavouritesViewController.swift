@@ -11,4 +11,13 @@ class FavouritesViewController: BaseViewController<ViewModel> {
     override func viewDidLoad() {
         super.viewDidLoad()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationItem.leftBarButtonItem = nil
+    }
+    
+    @IBAction func buttonDidPress(_ sender: Any) {
+        popVC?()
+    }
 }
