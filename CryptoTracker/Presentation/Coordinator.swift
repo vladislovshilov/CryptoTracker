@@ -18,14 +18,16 @@ class Coordinator {
     let navigationController: UINavigationController
     let storyboard = UIStoryboard(name: "Main", bundle: nil)
     
-    let networkService = NetworkService()
+    private lazy var networkService = NetworkService()
+    private lazy var coinGekoAPI = CoinGeckoAPI(networkService: networkService)
+    private lazy var storage = FavoritesStorage()
 
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
     }
 
     func start() {
-        let vm = ViewModel(api: CoinGeckoAPI(networkService: networkService))
+        let vm = ViewModel(api: coinGekoAPI, storage: storage)
         vm.counter = "asdasd"
         let vc: ViewController = storyboard.instantiateViewController(withIdentifier: .vc)
         vc.viewModel = vm
@@ -49,7 +51,7 @@ class Coordinator {
     }
     
     private func showFavourites() {
-        let vm = FavouriteViewModel()
+        let vm = FavouriteViewModel(storage: storage, service: coinGekoAPI)
         let vc: FavouritesViewController = storyboard.instantiateViewController(withIdentifier: .favourites)
         vc.viewModel = vm
         

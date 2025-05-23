@@ -16,10 +16,6 @@ final class ViewModel: ViewModeling {
     @Published var filterText: String = ""
     @Published var errorMessage: String?
     @Published var isLoading = false
-    @Published var refreshRate: UInt8 = 30
-    
-    let minRefreshRate: UInt8 = 30
-    let maxRefreshRate: UInt8 = 50
     
     var onCoinSelected: ((CryptoCurrency) -> Void)?
     
@@ -28,13 +24,16 @@ final class ViewModel: ViewModeling {
     private var canLoadMore = true
     
     private let api: CoinGeckoAPI
+    private let storage: FavoritesStorageProtocol
     private var cancellables = Set<AnyCancellable>()
     
     private var task: Task<Void, Never>?
     private var refreshTask: Task<Void, Never>?
     
-    init(api: CoinGeckoAPI = CoinGeckoAPI()) {
+    init(api: CoinGeckoAPI = CoinGeckoAPI(), storage: FavoritesStorageProtocol) {
         self.api = api
+        self.storage = storage
+        
         observeRefreshRate()
         
         task = Task {
@@ -72,7 +71,7 @@ final class ViewModel: ViewModeling {
         do {
             
             try await Task.sleep(for: .seconds(3))
-            let fetchedCtyptos = try await api.fetchCryptos(page: currentPage, perPage: perPage)
+            let fetchedCryptos = try await api.fetchCryptos(page: currentPage, perPage: perPage)
             
 //            let filteredCryptos = cryptos.filter {
 //                $0.name.lowercased().contains(filterText.lowercased()) ||
@@ -80,7 +79,7 @@ final class ViewModel: ViewModeling {
 //            }
             
             isLoading = false
-            cryptos = fetchedCtyptos
+            cryptos = fetchedCryptos
         } catch {
             isLoading = false
             print("smh wrong: \(error.localizedDescription)")
@@ -119,28 +118,17 @@ final class ViewModel: ViewModeling {
     }
     
     private func observeRefreshRate() {
-//        $refreshRate
-//            .dropFirst()
-//            .sink { [weak self] value in
-//                self?.startAutoRefresh()
-//            }
-//            .store(in: &cancellables)
-    }
-    
-    private func startAutoRefresh() {
-        refreshTask?.cancel()
-        Timer.publish(every: TimeInterval(refreshRate), on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                self?.refreshTask = Task(priority: .userInitiated, operation: {
-                    try? Task.checkCancellation()
-                    print("start autorefresh")
-                    await self?.refreshPrices(reset: false)
-                })
+        $cryptos
+            .sink { [weak self] value in
+                guard let self else { return }
+                for i in stride(from: 0, to: value.count, by: 2) {
+                    let fetched = value[i]
+                    let fav = FavoriteCurrency(id: fetched.id, name: fetched.name, currentPrice: fetched.currentPrice)
+                    storage.toggle(fav)
+                }
             }
             .store(in: &cancellables)
     }
-    
     
     func fetchAllPages() async {
         let urls = ["page1", "page2", "page3"]
