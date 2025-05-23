@@ -22,17 +22,34 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="30" minValue="30" maxValue="50" translatesAutoresizingMaskIntoConstraints="NO" id="epO-Bp-89D">
+                                <rect key="frame" x="62" y="103" width="269" height="31"/>
+                            </slider>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Refresh every 30 sec" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WEJ-si-GkY">
+                                <rect key="frame" x="116" y="141" width="161" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="WEJ-si-GkY" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="1HI-iq-cwc"/>
                             <constraint firstItem="02Z-wJ-EWd" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="AKk-eD-2oK"/>
+                            <constraint firstItem="epO-Bp-89D" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Dff-0x-4Vj"/>
+                            <constraint firstItem="epO-Bp-89D" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="64" id="DrZ-s1-FbR"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="epO-Bp-89D" secondAttribute="trailing" constant="64" id="MPk-ZW-4X9"/>
                             <constraint firstItem="02Z-wJ-EWd" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="khi-6v-kZ0"/>
+                            <constraint firstItem="WEJ-si-GkY" firstAttribute="top" secondItem="epO-Bp-89D" secondAttribute="bottom" constant="8" symbolic="YES" id="n7C-Qd-ByY"/>
+                            <constraint firstItem="epO-Bp-89D" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="ng6-c9-iBD"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="G4c-jB-JRt"/>
                     <connections>
                         <outlet property="label" destination="02Z-wJ-EWd" id="Hja-d2-6eb"/>
+                        <outlet property="refreshRateLabel" destination="WEJ-si-GkY" id="SA5-aZ-fpb"/>
+                        <outlet property="refreshRateSlider" destination="epO-Bp-89D" id="Lj3-fc-GgY"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

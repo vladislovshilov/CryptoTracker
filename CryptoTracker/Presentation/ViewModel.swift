@@ -16,6 +16,10 @@ final class ViewModel: ViewModeling {
     @Published var filterText: String = ""
     @Published var errorMessage: String?
     @Published var isLoading = false
+    @Published var refreshRate: UInt8 = 30
+    
+    let minRefreshRate: UInt8 = 30
+    let maxRefreshRate: UInt8 = 50
     
     var onCoinSelected: ((CryptoCurrency) -> Void)?
     
@@ -27,9 +31,11 @@ final class ViewModel: ViewModeling {
     private var cancellables = Set<AnyCancellable>()
     
     private var task: Task<Void, Never>?
+    private var refreshTask: Task<Void, Never>?
     
     init(api: CoinGeckoAPI = CoinGeckoAPI()) {
         self.api = api
+        observeRefreshRate()
         
         task = Task {
             await fetchCryptos(reset: false)
@@ -45,6 +51,7 @@ final class ViewModel: ViewModeling {
     
     func onDisappear() {
         task?.cancel()
+        refreshTask?.cancel()
     }
     
     func selectCoin(at index: Int) {
@@ -92,7 +99,7 @@ final class ViewModel: ViewModeling {
 
             for crypto in cryptos {
                 if let newPrice = updated.first(where: { $0.id == crypto.id }) {
-                    guard crypto.currentPrice < newPrice.currentPrice else {
+                    guard crypto.currentPrice != newPrice.currentPrice else {
                         return
                     }
                     var updatedItem = crypto
@@ -111,6 +118,28 @@ final class ViewModel: ViewModeling {
         }
     }
     
+    private func observeRefreshRate() {
+//        $refreshRate
+//            .dropFirst()
+//            .sink { [weak self] value in
+//                self?.startAutoRefresh()
+//            }
+//            .store(in: &cancellables)
+    }
+    
+    private func startAutoRefresh() {
+        refreshTask?.cancel()
+        Timer.publish(every: TimeInterval(refreshRate), on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.refreshTask = Task(priority: .userInitiated, operation: {
+                    try? Task.checkCancellation()
+                    print("start autorefresh")
+                    await self?.refreshPrices(reset: false)
+                })
+            }
+            .store(in: &cancellables)
+    }
     
     
     func fetchAllPages() async {
@@ -131,7 +160,7 @@ final class ViewModel: ViewModeling {
     }
     
     private func fetchAllArticles() async {
-        let sources = ["cnn.com", "bbc.com", "reuters.com"]
+//        let sources = ["cnn.com", "bbc.com", "reuters.com"]
 
         await withTaskGroup(of: String.self) { group in
             counter = "loading"
