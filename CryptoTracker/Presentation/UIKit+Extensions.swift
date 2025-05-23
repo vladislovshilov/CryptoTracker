@@ -8,7 +8,7 @@
 import UIKit
 
 extension UIStoryboard {
-    func instantiateViewController<T: UIViewController>(withIdentifier vcName: VCNames, viewModel: ViewModeling) -> T {
+    func instantiateViewController<T: UIViewController>(withIdentifier vcName: VCNames) -> T {
         guard let vc = instantiateViewController(withIdentifier: vcName.identifier) as? T else {
             fatalError("Could not instantiate view controller with identifier \(vcName.identifier)")
         }

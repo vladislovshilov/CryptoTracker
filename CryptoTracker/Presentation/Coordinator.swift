@@ -17,15 +17,17 @@ enum VCNames: String {
 class Coordinator {
     let navigationController: UINavigationController
     let storyboard = UIStoryboard(name: "Main", bundle: nil)
+    
+    let networkService = NetworkService()
 
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
     }
 
     func start() {
-        let vm = ViewModel()
+        let vm = ViewModel(api: CoinGeckoAPI(networkService: networkService))
         vm.counter = "asdasd"
-        let vc: ViewController = storyboard.instantiateViewController(withIdentifier: .vc, viewModel: vm)
+        let vc: ViewController = storyboard.instantiateViewController(withIdentifier: .vc)
         vc.viewModel = vm
         
         vc.onFavouritesButtonTap = { [weak self] in
@@ -47,8 +49,8 @@ class Coordinator {
     }
     
     private func showFavourites() {
-        let vm = ViewModel()
-        let vc: FavouritesViewController = storyboard.instantiateViewController(withIdentifier: .favourites, viewModel: ViewModel())
+        let vm = FavouriteViewModel()
+        let vc: FavouritesViewController = storyboard.instantiateViewController(withIdentifier: .favourites)
         vc.viewModel = vm
         
         vc.popVC = { [weak self] in
