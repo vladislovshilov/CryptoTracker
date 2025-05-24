@@ -16,8 +16,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="02Z-wJ-EWd">
-                                <rect key="frame" x="175.66666666666666" y="415.66666666666669" width="42" height="21"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="02Z-wJ-EWd">
+                                <rect key="frame" x="176" y="416" width="41.333333333333343" height="20.333333333333314"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
@@ -33,6 +33,8 @@
                     <navigationItem key="navigationItem" id="G4c-jB-JRt"/>
                     <connections>
                         <outlet property="label" destination="02Z-wJ-EWd" id="Hja-d2-6eb"/>
+                        <outlet property="refreshRateLabel" destination="WEJ-si-GkY" id="SA5-aZ-fpb"/>
+                        <outlet property="refreshRateSlider" destination="epO-Bp-89D" id="Lj3-fc-GgY"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -47,19 +49,54 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xvN-gR-j4f">
-                                <rect key="frame" x="159" y="409" width="75" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xvN-gR-j4f">
+                                <rect key="frame" x="159" y="408.66666666666669" width="75" height="35"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="Button"/>
                                 <connections>
                                     <action selector="buttonDidPress:" destination="ffR-QE-R1n" eventType="touchUpInside" id="CFm-0y-NwZ"/>
                                 </connections>
                             </button>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="hRJ-4q-XRh">
+                                <rect key="frame" x="0.0" y="67" width="393" height="333.66666666666669"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="ffR-QE-R1n" id="zzT-jC-Lna"/>
+                                    <outlet property="delegate" destination="ffR-QE-R1n" id="KyL-Mg-CAb"/>
+                                </connections>
+                            </tableView>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="30" minValue="30" maxValue="50" translatesAutoresizingMaskIntoConstraints="NO" id="epO-Bp-89D">
+                                <rect key="frame" x="62" y="451.66666666666669" width="269" height="31"/>
+                            </slider>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Refresh every 30 sec" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WEJ-si-GkY">
+                                <rect key="frame" x="116" y="489.66666666666669" width="161" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Nhs-O6-CwF"/>
                         <color key="backgroundColor" systemColor="systemPinkColor"/>
+                        <constraints>
+                            <constraint firstItem="hRJ-4q-XRh" firstAttribute="top" secondItem="Nhs-O6-CwF" secondAttribute="top" constant="8" id="75V-fr-vBV"/>
+                            <constraint firstItem="epO-Bp-89D" firstAttribute="leading" secondItem="Nhs-O6-CwF" secondAttribute="leading" constant="64" id="7qK-yl-vNY"/>
+                            <constraint firstItem="hRJ-4q-XRh" firstAttribute="leading" secondItem="Nhs-O6-CwF" secondAttribute="leading" id="Gi3-KQ-GDu"/>
+                            <constraint firstItem="epO-Bp-89D" firstAttribute="top" secondItem="xvN-gR-j4f" secondAttribute="bottom" constant="8" id="IJE-wO-x4B"/>
+                            <constraint firstItem="epO-Bp-89D" firstAttribute="centerX" secondItem="vAK-Zy-lLl" secondAttribute="centerX" id="PoS-oX-lNU"/>
+                            <constraint firstItem="xvN-gR-j4f" firstAttribute="centerX" secondItem="vAK-Zy-lLl" secondAttribute="centerX" id="WDS-3z-GiO"/>
+                            <constraint firstItem="Nhs-O6-CwF" firstAttribute="trailing" secondItem="hRJ-4q-XRh" secondAttribute="trailing" id="beq-dX-7mh"/>
+                            <constraint firstItem="Nhs-O6-CwF" firstAttribute="trailing" secondItem="epO-Bp-89D" secondAttribute="trailing" constant="64" id="hRN-Hf-XbL"/>
+                            <constraint firstItem="xvN-gR-j4f" firstAttribute="centerY" secondItem="vAK-Zy-lLl" secondAttribute="centerY" id="k7A-Yx-Zwq"/>
+                            <constraint firstItem="xvN-gR-j4f" firstAttribute="top" secondItem="hRJ-4q-XRh" secondAttribute="bottom" constant="8" id="pK8-wg-i58"/>
+                            <constraint firstItem="WEJ-si-GkY" firstAttribute="centerX" secondItem="vAK-Zy-lLl" secondAttribute="centerX" id="pi7-MF-FQq"/>
+                            <constraint firstItem="WEJ-si-GkY" firstAttribute="top" secondItem="epO-Bp-89D" secondAttribute="bottom" constant="8" symbolic="YES" id="w5A-Bl-cPO"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="refreshRateLabel" destination="WEJ-si-GkY" id="xLb-IM-mUj"/>
+                        <outlet property="refreshRateSlider" destination="epO-Bp-89D" id="h6V-sr-T3e"/>
+                        <outlet property="tableView" destination="hRJ-4q-XRh" id="hs9-eS-lhg"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nul-EL-MQ9" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
