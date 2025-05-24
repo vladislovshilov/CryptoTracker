@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol CryptoModel: Codable, Identifiable {
+protocol CryptoModel: Codable, Identifiable, Hashable {
     var id: String { get }
     var name: String { get }
     var currentPrice: Double { get set }

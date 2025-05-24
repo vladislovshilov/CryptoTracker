@@ -14,6 +14,9 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     @IBOutlet weak var refreshRateLabel: UILabel!
     @IBOutlet weak var tableView: UITableView!
     
+    private var refreshIntervalLabel: UILabel!
+    
+    private var dataSource: UITableViewDiffableDataSource<Int, FavoriteCurrency>!
     private var cancellables = Set<AnyCancellable>()
     
     override func viewDidLoad() {
@@ -30,8 +33,8 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
         
         viewModel.$favoriteCoins
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.tableView.reloadData()
+            .sink { [weak self] coins in
+                self?.updateSnapshot(with: coins.map { $0 })
             }
             .store(in: &cancellables)
         
@@ -48,9 +51,11 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
         navigationItem.leftBarButtonItem = nil
     }
     
+    // MARK: Setup
+    
     private func setupUI() {
         view.backgroundColor = .systemBackground
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+        setupTableView()
         
         refreshRateSlider.minimumValue = Float(viewModel.minRefreshRate)
         refreshRateSlider.maximumValue = Float(viewModel.maxRefreshRate)
@@ -61,8 +66,39 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
         refreshRateLabel.textAlignment = .center
     }
     
+    private func setupTableView() {
+        view.addSubview(tableView)
+        
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+        
+        dataSource = UITableViewDiffableDataSource<Int, FavoriteCurrency>(tableView: tableView) { [weak self] tableView, indexPath, coin in
+            let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+            self?.fillCell(cell, coin: coin)
+            return cell
+        }
+        
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(didPullToRefresh), for: .valueChanged)
+        tableView.refreshControl = refreshControl
+    }
+    
+    private func fillCell(_ cell: UITableViewCell, coin: FavoriteCurrency) {
+        var content = cell.defaultContentConfiguration()
+        content.text = "\(coin.name)"
+        content.secondaryText = "$\(coin.currentPrice)"
+        cell.contentConfiguration = content
+        cell.accessoryType = viewModel.isFavorite(coin) ? .checkmark : .none
+    }
+    
+    // MARK: Actions
+    
     @IBAction func buttonDidPress(_ sender: Any) {
         popVC?()
+    }
+    
+    @objc private func didPullToRefresh() {
+        viewModel.reload()
+        tableView.refreshControl?.endRefreshing()
     }
     
     @objc private func sliderValueChanged(_ sender: UISlider) {
@@ -72,19 +108,42 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     }
 }
 
+// MARK: - Helpers
+
+extension FavouritesViewController {
+    private func updateSnapshot(with coins: [FavoriteCurrency]) {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, FavoriteCurrency>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(coins)
+        dataSource.apply(snapshot, animatingDifferences: true)
+    }
+}
+
+// MARK: - UITableViewDataSource
+
 extension FavouritesViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return viewModel.favoriteCoins.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let coin = viewModel.favoriteCoins[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        var content = cell.defaultContentConfiguration()
-        content.text = "\(coin.name))"
-        content.secondaryText = "$\(coin.currentPrice)"
-        cell.contentConfiguration = content
-        cell.accessoryType = viewModel.isFavorite(coin) ? .checkmark : .none
+        fillCell(cell, coin: viewModel.favoriteCoins[indexPath.row])
         return cell
+    }
+}
+
+// MARK: - UITableViewDelegate
+
+extension FavouritesViewController: UITableViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let height = scrollView.frame.size.height
+        
+        // Если скроллим почти до низа (например, последние 100 поинтов)
+        if offsetY > contentHeight - height - 100 {
+            viewModel.loadNextPage()
+        }
     }
 }

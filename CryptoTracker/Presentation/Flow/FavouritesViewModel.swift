@@ -9,9 +9,11 @@ import Foundation
 import Combine
 
 final class FavouriteViewModel: ViewModeling, PriceLogging {
-    @Published var favoriteCoins: [FavoriteCurrency] = []
+    @Published private(set) var favoriteCoins: [FavoriteCurrency] = []
     @Published var refreshRate: UInt8 = 60
     @Published var isLoading = false
+    @Published var filterText: String = ""
+    @Published var errorMessage: String?
     
     let minRefreshRate: UInt8 = 60
     let maxRefreshRate: UInt8 = 255
@@ -28,9 +30,8 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
         self.storage = storage
         self.coinService = service
         
-//        favoriteCoins = storage.allFavorites().map { $0 }
         storage.favoritesPublisher
-            .debounce(for: .milliseconds(1000), scheduler: RunLoop.main)
+            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] coins in
                 self?.fetchFavoritesInfo(for: coins)
             }
@@ -60,6 +61,14 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
     
     func toggleFavorite(for coin: FavoriteCurrency) {
         storage.toggle(coin)
+    }
+    
+    func loadNextPage() {
+        print("should load next page")
+    }
+    
+    func reload() {
+        fetchFavoritesInfo(for: Set(favoriteCoins))
     }
     
     private func fetchFavoritesInfo(for favorites: Set<FavoriteCurrency>) {

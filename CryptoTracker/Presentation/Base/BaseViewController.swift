@@ -7,11 +7,6 @@
 
 import UIKit
 
-protocol ViewModeling {
-    func onAppear()
-    func onDisappear()
-}
-
 class BaseViewController<ViewModel: ViewModeling>: UIViewController {
     
     var onSettingsButtonTap: (() -> Void)?

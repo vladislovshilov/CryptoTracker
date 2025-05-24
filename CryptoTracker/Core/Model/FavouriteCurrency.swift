@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct FavoriteCurrency: CryptoModel, Hashable {
+struct FavoriteCurrency: CryptoModel {
     let id: String
     let name: String
     var currentPrice: Double
