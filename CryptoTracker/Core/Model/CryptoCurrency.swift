@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct CryptoCurrency: Codable, Identifiable {
+struct CryptoCurrency: CryptoModel {
     let id: String
     let symbol: String
     let name: String

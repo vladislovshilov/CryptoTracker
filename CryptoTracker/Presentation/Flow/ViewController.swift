@@ -28,6 +28,7 @@ class ViewController: BaseViewController<ViewModel> {
             .store(in: &cancellables)
         
         viewModel.$cryptos
+            .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] value in
                 print("received")
@@ -52,6 +53,7 @@ class ViewController: BaseViewController<ViewModel> {
                 if loading {
                     self?.label.text = "loading..."
                 }
+                self?.toggleLoading(isLoading: loading)
             }
             .store(in: &cancellables)
     }

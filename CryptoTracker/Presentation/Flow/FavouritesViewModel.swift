@@ -8,12 +8,13 @@
 import Foundation
 import Combine
 
-final class FavouriteViewModel: ViewModeling {
+final class FavouriteViewModel: ViewModeling, PriceLogging {
     @Published var favoriteCoins: [FavoriteCurrency] = []
-    @Published var refreshRate: UInt8 = 4
+    @Published var refreshRate: UInt8 = 60
+    @Published var isLoading = false
     
-    let minRefreshRate: UInt8 = 4
-    let maxRefreshRate: UInt8 = 50
+    let minRefreshRate: UInt8 = 60
+    let maxRefreshRate: UInt8 = 255
     
     private let coinService: CoinGeckoAPI
     private let storage: FavoritesStorageProtocol
@@ -27,9 +28,9 @@ final class FavouriteViewModel: ViewModeling {
         self.storage = storage
         self.coinService = service
         
-        favoriteCoins = storage.allFavorites().map { $0 }
+//        favoriteCoins = storage.allFavorites().map { $0 }
         storage.favoritesPublisher
-            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+            .debounce(for: .milliseconds(1000), scheduler: RunLoop.main)
             .sink { [weak self] coins in
                 self?.fetchFavoritesInfo(for: coins)
             }
@@ -66,13 +67,14 @@ final class FavouriteViewModel: ViewModeling {
         refreshTask = Task {
             do {
                 try Task.checkCancellation()
+                isLoading = true
                 let updated = try await coinService.fetchPrices(for: ids)
-                await MainActor.run {
-                    self.favoriteCoins = updated.map { .init(id: $0.id, name: $0.name, currentPrice: $0.currentPrice) }
-                }
+                logUpdated(updated, for: favorites.map { $0 })
+                favoriteCoins = updated.map { .init(id: $0.id, name: $0.name, currentPrice: $0.currentPrice) }
             } catch {
                 print("Failed to update favorite coins: \(error)")
             }
+            isLoading = false
         }
     }
     
@@ -82,7 +84,6 @@ final class FavouriteViewModel: ViewModeling {
         refreshTimer = Timer
             .publish(every: TimeInterval(refreshRate), on: .main, in: .common)
             .autoconnect()
-            .prepend(Date())
             .sink { [weak self] _ in
                 guard let self else { return }
                 fetchFavoritesInfo(for: storage.allFavorites())

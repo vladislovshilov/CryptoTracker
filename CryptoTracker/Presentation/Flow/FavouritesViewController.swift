@@ -27,6 +27,20 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
                 self?.refreshRateSlider.setValue(Float(rate), animated: true)
             }
             .store(in: &cancellables)
+        
+        viewModel.$favoriteCoins
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.tableView.reloadData()
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$isLoading
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isLoading in
+                self?.toggleLoading(isLoading: isLoading)
+            }
+            .store(in: &cancellables)
     }
     
     override func viewWillAppear(_ animated: Bool) {

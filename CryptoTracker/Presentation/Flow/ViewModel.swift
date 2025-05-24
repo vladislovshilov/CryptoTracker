@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-final class ViewModel: ViewModeling {
+final class ViewModel: ViewModeling, PriceLogging {
     
     @Published var counter: String = "empty"
     
@@ -33,8 +33,6 @@ final class ViewModel: ViewModeling {
     init(api: CoinGeckoAPI = CoinGeckoAPI(), storage: FavoritesStorageProtocol) {
         self.api = api
         self.storage = storage
-        
-        observeRefreshRate()
         
         task = Task {
             await fetchCryptos(reset: false)
@@ -69,7 +67,6 @@ final class ViewModel: ViewModeling {
         errorMessage = nil
         
         do {
-            
             try await Task.sleep(for: .seconds(3))
             let fetchedCryptos = try await api.fetchCryptos(page: currentPage, perPage: perPage)
             
@@ -80,6 +77,8 @@ final class ViewModel: ViewModeling {
             
             isLoading = false
             cryptos = fetchedCryptos
+            
+            populateFavourites()
         } catch {
             isLoading = false
             print("smh wrong: \(error.localizedDescription)")
@@ -93,40 +92,18 @@ final class ViewModel: ViewModeling {
         do {
             let ids = cryptos.map { $0.id }
             let updated = try await api.fetchPrices(for: ids)
-
-            var updatedCryptos: [CryptoCurrency] = []
-
-            for crypto in cryptos {
-                if let newPrice = updated.first(where: { $0.id == crypto.id }) {
-                    guard crypto.currentPrice != newPrice.currentPrice else {
-                        return
-                    }
-                    var updatedItem = crypto
-                    updatedItem.currentPrice = newPrice.currentPrice
-                    updatedItem.priceChangePercentage24h = newPrice.priceChangePercentage24h
-                    updatedCryptos.append(updatedItem)
-                    print("updated price for \(crypto.name) is \(crypto.currentPrice)")
-                } else {
-                    updatedCryptos.append(crypto)
-                }
-            }
-
-            cryptos = updatedCryptos
+            logUpdated(updated, for: cryptos)
+            cryptos = updated
         } catch {
             print("Failed to update favorite prices: \(error.localizedDescription)")
         }
     }
     
-    private func observeRefreshRate() {
-        $cryptos
-            .sink { [weak self] value in
-                guard let self else { return }
-                for i in stride(from: 0, to: value.count, by: 2) {
-                    let fetched = value[i]
-                    let fav = FavoriteCurrency(id: fetched.id, name: fetched.name, currentPrice: fetched.currentPrice)
-                    storage.toggle(fav)
-                }
-            }
-            .store(in: &cancellables)
+    private func populateFavourites() {
+        for i in stride(from: 0, to: cryptos.count, by: 2) {
+            let fetched = cryptos[i]
+            let fav = FavoriteCurrency(id: fetched.id, name: fetched.name, currentPrice: fetched.currentPrice)
+            storage.toggle(fav)
+        }
     }
 }
