@@ -38,6 +38,7 @@ class ViewController: BaseViewController<ViewModel> {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] loading in
                 if loading {
+                    // TODO: - in vm?
                     self?.label.text = "loading..."
                 }
                 self?.toggleLoading(isLoading: loading)

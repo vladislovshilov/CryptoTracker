@@ -27,6 +27,7 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
         viewModel.$refreshRate
             .receive(on: DispatchQueue.main)
             .sink { [weak self] rate in
+                // TODO: - in vm
                 self?.refreshRateLabel.text = "Refresh every \(rate) sec"
                 self?.refreshRateSlider.setValue(Float(rate), animated: true)
             }
@@ -36,6 +37,7 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isOn in
                 self?.appThemeSwitch.isOn = isOn
+                // TODO: - in vm
                 self?.appThemeLabel.text = "Current app theme: \(isOn ? "dark" : "light")"
             }
             .store(in: &cancellables)

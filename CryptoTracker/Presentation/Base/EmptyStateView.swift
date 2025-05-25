@@ -9,16 +9,22 @@ import UIKit
 
 final class EmptyStateView: UIView {
     
+    var message = "No data available" {
+        didSet {
+            messageLabel.text = message
+        }
+    }
     private let messageLabel = UILabel()
     
     init(message: String) {
         super.init(frame: .zero)
+        self.message = message
         setupUI(message: message)
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setupUI(message: "No data available")
+        setupUI(message: message)
     }
     
     private func setupUI(message: String) {
