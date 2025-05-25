@@ -9,19 +9,24 @@ import UIKit
 import Combine
 
 class Coordinator {
+    
     let navigationController: UINavigationController
-    let storyboard = UIStoryboard(name: "Main", bundle: nil)
+    private let windows: [UIWindow?]
+    
+    private let storyboard = UIStoryboard(name: "Main", bundle: nil)
     
     private lazy var networkService = NetworkService()
     private lazy var coinGekoAPI = CoinGeckoAPI(networkService: networkService)
     private lazy var storage = FavoritesStorage()
     private lazy var loadCoinsUseCase = LoadCoinsUseCase(service: coinGekoAPI)
-    private lazy var settingsUseCase = SettingsUseCase(coinLoadingConfiguration: loadCoinsUseCase)
+    private lazy var settingsService = SettingsManager(windows: windows, coinLoadingConfiguration: loadCoinsUseCase)
     
     private var cancellables = Set<AnyCancellable>()
 
-    init(navigationController: UINavigationController) {
+    init(windows: [UIWindow?], navigationController: UINavigationController) {
+        self.windows = windows
         self.navigationController = navigationController
+        settingsService.changeAppTheme(to: AppTheme(rawValue: UserSettings.appTheme) ?? .light)
     }
 
     func start() {
@@ -100,7 +105,7 @@ class Coordinator {
     }
     
     private func showSettings() {
-        let viewModel = SettingsViewModel(useCase: settingsUseCase)
+        let viewModel = SettingsViewModel(useCase: settingsService)
         let viewController: SettingsViewController = storyboard.instantiateViewController(withIdentifier: .settings)
         viewController.viewModel = viewModel
         navigationController.pushViewController(viewController, animated: true)

@@ -10,15 +10,16 @@ import Combine
 
 final class SettingsViewModel: ViewModeling {
     @Published var refreshRate: TimeInterval = TimeInterval(UserSettings.refreshRate)
+    @Published var appThemeOn: Bool = (AppTheme(rawValue: UserSettings.appTheme) ?? .light) == .dark
     
     let minRefreshRate: UInt8 = UserSettings.minRefreshRate
     let maxRefreshRate: UInt8 = UInt8.max
     
-    private let useCase: SettingsUseCase
+    private let useCase: SettingsUseCasing
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(useCase: SettingsUseCase) {
+    init(useCase: SettingsUseCasing) {
         self.useCase = useCase
         
         $refreshRate
@@ -29,5 +30,10 @@ final class SettingsViewModel: ViewModeling {
                 useCase.changeRefreshRate(to: UInt8(value))
             }
             .store(in: &cancellables)
+    }
+    
+    func toggleAppTheme() {
+        useCase.changeAppTheme(to: appThemeOn ? .light : .dark)
+        appThemeOn.toggle()
     }
 }

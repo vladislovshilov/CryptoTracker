@@ -104,20 +104,39 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gAi-K7-4f2">
+                                <rect key="frame" x="172" y="166" width="51" height="31"/>
+                                <connections>
+                                    <action selector="switchValueDidChange:" destination="SoX-5y-RW0" eventType="valueChanged" id="GAy-jR-VT0"/>
+                                </connections>
+                            </switch>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="App theme: light" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EG2-Bp-PKd">
+                                <rect key="frame" x="16" y="205" width="361" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="erF-zi-kIA"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="gAi-K7-4f2" firstAttribute="centerX" secondItem="qFP-h5-Ifw" secondAttribute="centerX" id="Aa6-O4-UrT"/>
                             <constraint firstItem="epO-Bp-89D" firstAttribute="centerX" secondItem="qFP-h5-Ifw" secondAttribute="centerX" id="Btz-f1-idU"/>
+                            <constraint firstItem="EG2-Bp-PKd" firstAttribute="leading" secondItem="erF-zi-kIA" secondAttribute="leading" constant="16" id="DMV-UE-yge"/>
                             <constraint firstItem="epO-Bp-89D" firstAttribute="leading" secondItem="erF-zi-kIA" secondAttribute="leading" constant="64" id="LZ6-Kw-WHQ"/>
                             <constraint firstItem="WEJ-si-GkY" firstAttribute="centerX" secondItem="qFP-h5-Ifw" secondAttribute="centerX" id="R9u-Fd-kPx"/>
                             <constraint firstItem="WEJ-si-GkY" firstAttribute="top" secondItem="epO-Bp-89D" secondAttribute="bottom" constant="8" symbolic="YES" id="SDj-6i-vZX"/>
                             <constraint firstItem="epO-Bp-89D" firstAttribute="centerX" secondItem="qFP-h5-Ifw" secondAttribute="centerX" id="Xyt-FC-pSL"/>
+                            <constraint firstItem="erF-zi-kIA" firstAttribute="trailing" secondItem="EG2-Bp-PKd" secondAttribute="trailing" constant="16" id="g53-TJ-Zt4"/>
                             <constraint firstItem="epO-Bp-89D" firstAttribute="top" secondItem="erF-zi-kIA" secondAttribute="top" constant="16" id="hH3-lL-EAa"/>
+                            <constraint firstItem="gAi-K7-4f2" firstAttribute="top" secondItem="WEJ-si-GkY" secondAttribute="bottom" constant="32" id="kKx-QG-8tP"/>
                             <constraint firstItem="erF-zi-kIA" firstAttribute="trailing" secondItem="epO-Bp-89D" secondAttribute="trailing" constant="64" id="lZu-gr-tb5"/>
+                            <constraint firstItem="EG2-Bp-PKd" firstAttribute="top" secondItem="gAi-K7-4f2" secondAttribute="bottom" constant="8" symbolic="YES" id="wlt-8a-kt4"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="appThemeLabel" destination="EG2-Bp-PKd" id="tQ4-3R-3sY"/>
+                        <outlet property="appThemeSwitch" destination="gAi-K7-4f2" id="UHM-kn-c5n"/>
                         <outlet property="refreshRateLabel" destination="WEJ-si-GkY" id="uom-IY-ehy"/>
                         <outlet property="refreshRateSlider" destination="epO-Bp-89D" id="2Pp-qF-hML"/>
                     </connections>

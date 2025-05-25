@@ -13,6 +13,9 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
     @IBOutlet private weak var refreshRateSlider: UISlider!
     @IBOutlet private weak var refreshRateLabel: UILabel!
     
+    @IBOutlet private weak var appThemeSwitch: UISwitch!
+    @IBOutlet private weak var appThemeLabel: UILabel!
+    
     private var cancellables = Set<AnyCancellable>()
 
     override func viewDidLoad() {
@@ -24,6 +27,14 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
             .sink { [weak self] rate in
                 self?.refreshRateLabel.text = "Refresh every \(rate) sec"
                 self?.refreshRateSlider.setValue(Float(rate), animated: true)
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$appThemeOn
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isOn in
+                self?.appThemeSwitch.isOn = isOn
+                self?.appThemeLabel.text = "Current app theme: \(isOn ? "dark" : "light")"
             }
             .store(in: &cancellables)
     }
@@ -47,5 +58,9 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
         let stepped = round(sender.value)
         sender.value = stepped
         viewModel.refreshRate = TimeInterval(stepped)
+    }
+    
+    @IBAction func switchValueDidChange(_ sender: Any) {
+        viewModel.toggleAppTheme()
     }
 }

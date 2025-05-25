@@ -6,14 +6,6 @@
 //
 
 import Foundation
-//
-//struct UserSettings {
-//    @UserDefault(key: "refreshRate", defaultValue: 15)
-//    static var refreshRate: UInt8
-//
-//    @UserDefault(key: "favoriteCoinIDs", defaultValue: [])
-//    static var favoriteCoinIDs: [String]
-//}
 
 final class UserSettings: ObservableObject {
     @UserDefault(key: "minRefreshRate", defaultValue: 6)
@@ -24,4 +16,7 @@ final class UserSettings: ObservableObject {
     
     @UserDefault(key: "favoriteCoinIDs", defaultValue: [])
     static var storedFavoriteCoinIDs: [String]
+    
+    @UserDefault(key: "appTheme", defaultValue: AppTheme.light.rawValue)
+    static var appTheme: String
 }
