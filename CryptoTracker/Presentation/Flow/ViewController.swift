@@ -20,30 +20,19 @@ class ViewController: BaseViewController<ViewModel> {
     }
     
     private func bindViewModel() {
-        viewModel.$counter
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] obj in
-                self?.label.text = obj
-            }
-            .store(in: &cancellables)
-        
         viewModel.$cryptos
             .dropFirst()
+            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
+            .sink { [weak self] values in
                 print("received")
-                let result = value.map {
+                
+                guard !values.isEmpty else { return }
+                let result = values.map {
                     "\($0.name) - \($0.currentPrice)"
                 }.joined(separator: "\n")
+                
                 self?.label.text = result
-            }
-            .store(in: &cancellables)
-        
-        viewModel.$errorMessage
-            .receive(on: DispatchQueue.main)
-            .compactMap { $0 }
-            .sink { [weak self] errorMsg in
-                self?.label.text = errorMsg
             }
             .store(in: &cancellables)
         

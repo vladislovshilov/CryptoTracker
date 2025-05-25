@@ -14,11 +14,16 @@ protocol PriceLogging {
 extension PriceLogging {
     func logUpdated(_ updated: [CryptoCurrency], for models: [any CryptoModel]) {
         print("\nPrices update:\n")
+        var hasUpdate = false
         for model in models {
             if let newPrice = updated.first(where: { $0.id == model.id })?.currentPrice {
                 guard model.currentPrice != newPrice else { continue }
                 print("\(model.name) \(model.currentPrice) -> \(newPrice)")
+                hasUpdate = true
             }
+        }
+        if !hasUpdate {
+            print("no updates")
         }
     }
 }

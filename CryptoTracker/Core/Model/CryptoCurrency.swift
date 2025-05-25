@@ -26,4 +26,8 @@ struct CryptoCurrency: CryptoModel {
         case totalVolume = "total_volume"
         case priceChangePercentage24h = "price_change_percentage_24h"
     }
+    
+    func toFavouriteModel() -> FavoriteCurrency {
+        .init(id: id, name: name, marketCap: marketCap, currentPrice: currentPrice, totalVolume: totalVolume)
+    }
 }

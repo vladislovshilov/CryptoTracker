@@ -16,3 +16,13 @@ extension UIStoryboard {
         return vc
     }
 }
+
+extension UINavigationController {
+    func showAlert(title: String, message: String?) {
+        let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "ok", style: .cancel, handler: { action in
+            (action.value(forKeyPath: "alertController") as? UIAlertController)?.dismiss(animated: true)
+        }))
+        present(ac, animated: true)
+    }
+}

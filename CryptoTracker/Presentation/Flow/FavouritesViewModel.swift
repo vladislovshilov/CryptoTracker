@@ -9,31 +9,33 @@ import Foundation
 import Combine
 
 final class FavouriteViewModel: ViewModeling, PriceLogging {
+    
     @Published private(set) var favoriteCoins: [FavoriteCurrency] = []
-    @Published var refreshRate: UInt8 = 60
+    @Published var refreshRate: TimeInterval = TimeInterval(UserSettings.refreshRate)
     @Published var isLoading = false
     @Published var filterText: String = ""
-    @Published var errorMessage: String?
     
-    let minRefreshRate: UInt8 = 60
-    let maxRefreshRate: UInt8 = 255
+    let coinSelection = PassthroughSubject<any CryptoModel, Never>()
+    let errorMessage = PassthroughSubject<String, Never>()
     
-    private let coinService: CoinGeckoAPI
+    let minRefreshRate: UInt8 = 6
+    let maxRefreshRate: UInt8 = UInt8.max
+    
+    private let useCase: LoadCoinsUseCase
     private let storage: FavoritesStorageProtocol
     
     private var cancellables = Set<AnyCancellable>()
-    private var refreshTask: Task<Void, Never>?
-    private var refreshTimer: AnyCancellable?
     
-    
-    init(storage: FavoritesStorageProtocol, service: CoinGeckoAPI) {
+    init(useCase: LoadCoinsUseCase, storage: FavoritesStorageProtocol) {
         self.storage = storage
-        self.coinService = service
+        self.useCase = useCase
         
         storage.favoritesPublisher
+            .dropFirst()
+            .removeDuplicates()
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] coins in
-                self?.fetchFavoritesInfo(for: coins)
+                self?.useCase.load(force: true)
             }
             .store(in: &cancellables)
         
@@ -41,18 +43,24 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
             .dropFirst()
             .removeDuplicates()
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
-            .sink { [weak self] value in
-                self?.startAutoRefresh()
+            .sink { value in
+                useCase.changeRefreshRate(to: UInt8(value))
             }
             .store(in: &cancellables)
     }
     
     func onAppear() {
-        startAutoRefresh()
+        bindUseCase()
     }
     
     func onDisappear() {
-        refreshTask?.cancel()
+        unbindUseCase()
+    }
+    
+    func selectCoin(at index: Int) {
+        if let coin = favoriteCoins[safe: index] {
+            coinSelection.send(coin)
+        }
     }
     
     func isFavorite(_ coin: FavoriteCurrency) -> Bool {
@@ -64,38 +72,45 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
     }
     
     func loadNextPage() {
-        print("should load next page")
+//        useCase.loadNextPage()
     }
     
     func reload() {
-        fetchFavoritesInfo(for: Set(favoriteCoins))
-    }
-    
-    private func fetchFavoritesInfo(for favorites: Set<FavoriteCurrency>) {
-        let ids = favorites.map { $0.id }
-        refreshTask = Task {
-            do {
-                try Task.checkCancellation()
-                isLoading = true
-                let updated = try await coinService.fetchPrices(for: ids)
-                logUpdated(updated, for: favorites.map { $0 })
-                favoriteCoins = updated.map { .init(id: $0.id, name: $0.name, currentPrice: $0.currentPrice) }
-            } catch {
-                print("Failed to update favorite coins: \(error)")
-            }
-            isLoading = false
+        isLoading = true
+        if favoriteCoins.isEmpty {
+            useCase.load(force: true)
+        } else {
+            useCase.refreshPrices(force: true)
         }
     }
     
-    private func startAutoRefresh() {
-        refreshTask?.cancel()
-        refreshTimer?.cancel()
-        refreshTimer = Timer
-            .publish(every: TimeInterval(refreshRate), on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                guard let self else { return }
-                fetchFavoritesInfo(for: storage.allFavorites())
+    private func bindUseCase() {
+        useCase.coinsPublisher
+            .combineLatest(storage.favoritesPublisher)
+            .map { coins, favorites -> [FavoriteCurrency] in
+                coins
+                    .filter { coin in
+                        favorites.contains(where: { $0.id == coin.id })
+                    }
+                    .map { $0.toFavouriteModel() }
             }
+            .sink(receiveValue: { [weak self] coins in
+                self?.favoriteCoins = coins
+                self?.isLoading = false
+            })
+            .store(in: &cancellables)
+        
+        
+        useCase.errorPublisher
+            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+            .sink { [weak self] errorMessage in
+                self?.errorMessage.send(errorMessage ?? "no error")
+                self?.isLoading = false
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func unbindUseCase() {
+        cancellables.removeAll()
     }
 }

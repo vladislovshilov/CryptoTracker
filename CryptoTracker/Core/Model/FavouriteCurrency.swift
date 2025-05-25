@@ -10,5 +10,7 @@ import Foundation
 struct FavoriteCurrency: CryptoModel {
     let id: String
     let name: String
+    let marketCap: Double?
     var currentPrice: Double
+    let totalVolume: Double?
 }

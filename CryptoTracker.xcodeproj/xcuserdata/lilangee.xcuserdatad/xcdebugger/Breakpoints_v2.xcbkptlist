@@ -23,49 +23,49 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "C1709FB8-9ED7-48D1-A3BC-0321A4DF96E2"
+            uuid = "71CF1E26-9CB2-47B3-AAF5-B3665ADAA87A"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "CryptoTracker/Presentation/Flow/FavouritesViewModel.swift"
+            filePath = "CryptoTracker/Presentation/Flow/ViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "80"
-            endingLineNumber = "80"
-            landmarkName = "fetchFavoritesInfo(for:)"
+            startingLineNumber = "65"
+            endingLineNumber = "65"
+            landmarkName = "bindUseCase()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "84043CC3-44E9-4484-B7F6-589162B0B8F7"
+            uuid = "9ABB1190-A4B1-4A97-BC31-9FB6B1B44051"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "CryptoTracker/Presentation/Flow/FavouritesViewModel.swift"
+            filePath = "CryptoTracker/Presentation/Flow/ViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "76"
-            endingLineNumber = "76"
-            landmarkName = "fetchFavoritesInfo(for:)"
+            startingLineNumber = "56"
+            endingLineNumber = "56"
+            landmarkName = "bindUseCase()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "B9163ACF-BD01-420F-A525-A142071C1EAB"
+            uuid = "F96505D1-1CC9-4F1D-899E-7CD120B8F454"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "CryptoTracker/Presentation/Flow/FavouritesViewModel.swift"
+            filePath = "CryptoTracker/Core/CoinLoadingUseCase.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "71"
-            endingLineNumber = "71"
-            landmarkName = "reload()"
-            landmarkType = "7">
+            startingLineNumber = "15"
+            endingLineNumber = "15"
+            landmarkName = "errorMessage"
+            landmarkType = "24">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

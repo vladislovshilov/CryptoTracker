@@ -10,9 +10,9 @@ import Combine
 
 class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     
-    @IBOutlet weak var refreshRateSlider: UISlider!
-    @IBOutlet weak var refreshRateLabel: UILabel!
-    @IBOutlet weak var tableView: UITableView!
+    @IBOutlet private weak var refreshRateSlider: UISlider!
+    @IBOutlet private weak var refreshRateLabel: UILabel!
+    @IBOutlet private weak var tableView: UITableView!
     
     private var refreshIntervalLabel: UILabel!
     
@@ -67,8 +67,6 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     }
     
     private func setupTableView() {
-        view.addSubview(tableView)
-        
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         
         dataSource = UITableViewDiffableDataSource<Int, FavoriteCurrency>(tableView: tableView) { [weak self] tableView, indexPath, coin in
@@ -92,7 +90,7 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     
     // MARK: Actions
     
-    @IBAction func buttonDidPress(_ sender: Any) {
+    @IBAction private func buttonDidPress(_ sender: Any) {
         popVC?()
     }
     
@@ -104,7 +102,7 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     @objc private func sliderValueChanged(_ sender: UISlider) {
         let stepped = round(sender.value)
         sender.value = stepped
-        viewModel.refreshRate = UInt8(stepped)
+        viewModel.refreshRate = TimeInterval(stepped)
     }
 }
 
@@ -145,5 +143,9 @@ extension FavouritesViewController: UITableViewDelegate {
         if offsetY > contentHeight - height - 100 {
             viewModel.loadNextPage()
         }
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        viewModel.selectCoin(at: indexPath.row)
     }
 }
