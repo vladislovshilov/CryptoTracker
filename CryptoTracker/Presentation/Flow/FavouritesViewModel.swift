@@ -11,22 +11,18 @@ import Combine
 final class FavouriteViewModel: ViewModeling, PriceLogging {
     
     @Published private(set) var favoriteCoins: [FavoriteCurrency] = []
-    @Published var refreshRate: TimeInterval = TimeInterval(UserSettings.refreshRate)
     @Published var isLoading = false
     @Published var filterText: String = ""
     
     let coinSelection = PassthroughSubject<any CryptoModel, Never>()
     let errorMessage = PassthroughSubject<String, Never>()
     
-    let minRefreshRate: UInt8 = 6
-    let maxRefreshRate: UInt8 = UInt8.max
-    
-    private let useCase: LoadCoinsUseCase
-    private let storage: FavoritesStorageProtocol
+    private let useCase: CoinLoading
+    private let storage: FavoritesStoring
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(useCase: LoadCoinsUseCase, storage: FavoritesStorageProtocol) {
+    init(useCase: CoinLoading, storage: FavoritesStoring) {
         self.storage = storage
         self.useCase = useCase
         
@@ -36,15 +32,6 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] coins in
                 self?.useCase.load(force: true)
-            }
-            .store(in: &cancellables)
-        
-        $refreshRate
-            .dropFirst()
-            .removeDuplicates()
-            .debounce(for: .milliseconds(1000), scheduler: RunLoop.main)
-            .sink { value in
-                useCase.changeRefreshRate(to: UInt8(value))
             }
             .store(in: &cancellables)
     }

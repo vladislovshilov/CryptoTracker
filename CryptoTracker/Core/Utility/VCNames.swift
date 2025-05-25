@@ -10,6 +10,7 @@ import Foundation
 enum VCNames: String {
     case vc = "ViewController"
     case favourites = "FavouritesViewController"
+    case settings = "SettingsViewController"
     
     var identifier: String { rawValue }
 }

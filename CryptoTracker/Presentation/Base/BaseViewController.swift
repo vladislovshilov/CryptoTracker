@@ -36,12 +36,12 @@ class BaseViewController<ViewModel: ViewModeling>: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        viewModel.onAppear()
+        viewModel.onAppear?()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        viewModel.onDisappear()
+        viewModel.onDisappear?()
     }
     
     func toggleLoading(isLoading: Bool) {

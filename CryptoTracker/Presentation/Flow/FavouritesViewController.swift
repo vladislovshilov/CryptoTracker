@@ -10,8 +10,6 @@ import Combine
 
 class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     
-    @IBOutlet private weak var refreshRateSlider: UISlider!
-    @IBOutlet private weak var refreshRateLabel: UILabel!
     @IBOutlet private weak var tableView: UITableView!
     
     private var refreshIntervalLabel: UILabel!
@@ -22,14 +20,6 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        
-        viewModel.$refreshRate
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] rate in
-                self?.refreshRateLabel.text = "Refresh every \(rate) sec"
-                self?.refreshRateSlider.setValue(Float(rate), animated: true)
-            }
-            .store(in: &cancellables)
         
         viewModel.$favoriteCoins
             .receive(on: DispatchQueue.main)
@@ -49,6 +39,7 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationItem.leftBarButtonItem = nil
+        navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.reversed().dropLast() ?? nil
     }
     
     // MARK: Setup
@@ -56,14 +47,6 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     private func setupUI() {
         view.backgroundColor = .systemBackground
         setupTableView()
-        
-        refreshRateSlider.minimumValue = Float(viewModel.minRefreshRate)
-        refreshRateSlider.maximumValue = Float(viewModel.maxRefreshRate)
-        refreshRateSlider.value = Float(viewModel.refreshRate)
-        refreshRateSlider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
-        
-        refreshRateLabel.font = .systemFont(ofSize: 16)
-        refreshRateLabel.textAlignment = .center
     }
     
     private func setupTableView() {
@@ -97,12 +80,6 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     @objc private func didPullToRefresh() {
         viewModel.reload()
         tableView.refreshControl?.endRefreshing()
-    }
-    
-    @objc private func sliderValueChanged(_ sender: UISlider) {
-        let stepped = round(sender.value)
-        sender.value = stepped
-        viewModel.refreshRate = TimeInterval(stepped)
     }
 }
 

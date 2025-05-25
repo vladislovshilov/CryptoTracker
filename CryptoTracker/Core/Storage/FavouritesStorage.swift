@@ -8,14 +8,15 @@
 import Foundation
 import Combine
 
-protocol FavoritesStorageProtocol {
+protocol FavoritesStoring {
     var favoritesPublisher: AnyPublisher<Set<FavoriteCurrency>, Never> { get }
     func toggle(_ coin: FavoriteCurrency)
     func isFavorite(_ coin: FavoriteCurrency) -> Bool
     func allFavorites() -> Set<FavoriteCurrency>
+    func removeAll()
 }
 
-final class FavoritesStorage: FavoritesStorageProtocol {
+final class FavoritesStorage: FavoritesStoring {
     private let key = "favoriteCoins"
     private let defaults = UserDefaults.standard
     private var favorites: Set<FavoriteCurrency> = []
@@ -63,5 +64,10 @@ final class FavoritesStorage: FavoritesStorageProtocol {
 
     func allFavorites() -> Set<FavoriteCurrency> {
         favorites
+    }
+    
+    func removeAll() {
+        favorites.removeAll()
+        save()
     }
 }

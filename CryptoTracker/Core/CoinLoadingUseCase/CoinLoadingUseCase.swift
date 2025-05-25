@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-final class LoadCoinsUseCase: CoinLoading, PriceLogging {
+final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging {
     
     var errorMessage: String = "" {
         didSet {
@@ -59,6 +59,7 @@ final class LoadCoinsUseCase: CoinLoading, PriceLogging {
     func load(force: Bool = false) {
         let now = Date()
         guard force || lastLoadedAt == nil || UInt8(now.timeIntervalSince(lastLoadedAt!)) > UserSettings.refreshRate else {
+            coinsPublisher.send(coins)
             return
         }
         
