@@ -102,6 +102,7 @@ final class LoadCoinsUseCase: CoinLoading, PriceLogging {
                 lastPriceUpdateAt = Date()
                 logUpdated(updated, for: coins)
             } catch {
+                print("and getting error")
                 errorMessage = "Failed to update prices: \(error.localizedDescription)"
             }
         }
@@ -128,6 +129,7 @@ extension LoadCoinsUseCase {
             lastLoadedAt = Date()
             logUpdated(coins, for: coins.map { $0 })
         } catch {
+            print("and getting error")
             errorMessage = "Failed to update coins: \(error)"
         }
     }
@@ -139,7 +141,7 @@ extension LoadCoinsUseCase {
     private func startAutoRefresh() {
         print("\(UserSettings.refreshRate)")
         refreshTimer = Timer
-            .publish(every: TimeInterval(UserSettings.refreshRate), on: .main, in: .common)
+            .publish(every: TimeInterval(UserSettings.refreshRate), on: .current, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 if self?.coins.isEmpty ?? true {

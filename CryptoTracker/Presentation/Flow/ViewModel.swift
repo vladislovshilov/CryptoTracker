@@ -54,7 +54,7 @@ final class ViewModel: ViewModeling, PriceLogging {
         useCase.coinsPublisher
             .sink { [weak self] coins in
                 self?.cryptos = coins
-                self?.populateFavourites()
+                self?.populateFavouritesIfNeeded()
                 self?.isLoading = false
             }
             .store(in: &cancellables)
@@ -76,10 +76,12 @@ final class ViewModel: ViewModeling, PriceLogging {
 // MARK: Temp
 
 extension ViewModel {
-    private func populateFavourites() {
-        for i in stride(from: 0, to: cryptos.count, by: 2) {
-            let fetched = cryptos[i]
-            storage.toggle(fetched.toFavouriteModel())
+    private func populateFavouritesIfNeeded() {
+        if storage.allFavorites().isEmpty {
+            for i in stride(from: 0, to: cryptos.count, by: 2) {
+                let fetched = cryptos[i]
+                storage.toggle(fetched.toFavouriteModel())
+            }
         }
     }
 }

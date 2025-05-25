@@ -42,7 +42,7 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
         $refreshRate
             .dropFirst()
             .removeDuplicates()
-            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+            .debounce(for: .milliseconds(1000), scheduler: RunLoop.main)
             .sink { value in
                 useCase.changeRefreshRate(to: UInt8(value))
             }

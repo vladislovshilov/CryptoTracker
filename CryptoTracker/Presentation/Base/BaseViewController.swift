@@ -10,8 +10,6 @@ import Combine
 
 class BaseViewController<ViewModel: ViewModeling>: UIViewController {
     
-    let didGetError = PassthroughSubject<String, Never>()
-    
     let settingsTap = PassthroughSubject<Void, Never>()
     let favouriteTap = PassthroughSubject<Void, Never>()
     let filterTap = PassthroughSubject<Void, Never>()

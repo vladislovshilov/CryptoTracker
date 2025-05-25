@@ -25,8 +25,6 @@ class ViewController: BaseViewController<ViewModel> {
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] values in
-                print("received")
-                
                 guard !values.isEmpty else { return }
                 let result = values.map {
                     "\($0.name) - \($0.currentPrice)"

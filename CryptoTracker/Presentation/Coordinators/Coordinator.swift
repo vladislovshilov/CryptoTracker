@@ -25,9 +25,6 @@ class Coordinator {
 
     func start() {
         let vm = ViewModel(useCase: loadCoinsUseCase, storage: storage)
-        let vc: ViewController = storyboard.instantiateViewController(withIdentifier: .vc)
-        vc.viewModel = vm
-        
         vm.coinSelection
             .receive(on: DispatchQueue.main)
             .sink { [weak self] coin in
@@ -35,12 +32,16 @@ class Coordinator {
             }
             .store(in: &cancellables)
         
-        vc.didGetError
+        vm.errorMessage
+            .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] errorMessage in
                 self?.navigationController.showAlert(title: "Error", message: errorMessage)
             }
             .store(in: &cancellables)
+        
+        let vc: ViewController = storyboard.instantiateViewController(withIdentifier: .vc)
+        vc.viewModel = vm
         
         vc.filterTap
             .receive(on: DispatchQueue.main)
@@ -68,9 +69,6 @@ class Coordinator {
     
     private func showFavourites() {
         let vm = FavouriteViewModel(useCase: loadCoinsUseCase, storage: storage)
-        let vc: FavouritesViewController = storyboard.instantiateViewController(withIdentifier: .favourites)
-        vc.viewModel = vm
-        
         vm.coinSelection
             .receive(on: DispatchQueue.main)
             .sink { [weak self] coin in
@@ -85,6 +83,9 @@ class Coordinator {
                 self?.navigationController.showAlert(title: "Error", message: errorMessage)
             }
             .store(in: &cancellables)
+        
+        let vc: FavouritesViewController = storyboard.instantiateViewController(withIdentifier: .favourites)
+        vc.viewModel = vm
         
         vc.popVC = { [weak self] in
             self?.navigationController.popViewController(animated: true)
