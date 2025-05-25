@@ -19,6 +19,8 @@ final class LoadCoinsUseCase: CoinLoading, PriceLogging {
     var coinsPublisher = CurrentValueSubject<[CryptoCurrency], Never>([])
     var errorPublisher = CurrentValueSubject<String?, Never>(nil)
     
+    private let queue = DispatchQueue(label: "coins.queue")
+    
     private(set) var currentPage = 0
     private var bunchAmount = 20
     private var canLoadMore = true
@@ -48,7 +50,11 @@ final class LoadCoinsUseCase: CoinLoading, PriceLogging {
     // MARK: CoinLoading
 
     func currentCoins() -> [CryptoCurrency] {
-        coins
+        var result: [CryptoCurrency] = []
+        queue.sync {
+            result = self.coins
+        }
+        return result
     }
     
     func load(force: Bool = false) {
