@@ -65,31 +65,16 @@
                                     <outlet property="delegate" destination="ffR-QE-R1n" id="KyL-Mg-CAb"/>
                                 </connections>
                             </tableView>
-                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="30" minValue="30" maxValue="50" translatesAutoresizingMaskIntoConstraints="NO" id="epO-Bp-89D">
-                                <rect key="frame" x="62" y="451.66666666666669" width="269" height="31"/>
-                            </slider>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Refresh every 30 sec" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WEJ-si-GkY">
-                                <rect key="frame" x="116" y="489.66666666666669" width="161" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Nhs-O6-CwF"/>
                         <color key="backgroundColor" systemColor="systemPinkColor"/>
                         <constraints>
                             <constraint firstItem="hRJ-4q-XRh" firstAttribute="top" secondItem="Nhs-O6-CwF" secondAttribute="top" constant="8" id="75V-fr-vBV"/>
-                            <constraint firstItem="epO-Bp-89D" firstAttribute="leading" secondItem="Nhs-O6-CwF" secondAttribute="leading" constant="64" id="7qK-yl-vNY"/>
                             <constraint firstItem="hRJ-4q-XRh" firstAttribute="leading" secondItem="Nhs-O6-CwF" secondAttribute="leading" id="Gi3-KQ-GDu"/>
-                            <constraint firstItem="epO-Bp-89D" firstAttribute="top" secondItem="xvN-gR-j4f" secondAttribute="bottom" constant="8" id="IJE-wO-x4B"/>
-                            <constraint firstItem="epO-Bp-89D" firstAttribute="centerX" secondItem="vAK-Zy-lLl" secondAttribute="centerX" id="PoS-oX-lNU"/>
                             <constraint firstItem="xvN-gR-j4f" firstAttribute="centerX" secondItem="vAK-Zy-lLl" secondAttribute="centerX" id="WDS-3z-GiO"/>
                             <constraint firstItem="Nhs-O6-CwF" firstAttribute="trailing" secondItem="hRJ-4q-XRh" secondAttribute="trailing" id="beq-dX-7mh"/>
-                            <constraint firstItem="Nhs-O6-CwF" firstAttribute="trailing" secondItem="epO-Bp-89D" secondAttribute="trailing" constant="64" id="hRN-Hf-XbL"/>
                             <constraint firstItem="xvN-gR-j4f" firstAttribute="centerY" secondItem="vAK-Zy-lLl" secondAttribute="centerY" id="k7A-Yx-Zwq"/>
                             <constraint firstItem="xvN-gR-j4f" firstAttribute="top" secondItem="hRJ-4q-XRh" secondAttribute="bottom" constant="8" id="pK8-wg-i58"/>
-                            <constraint firstItem="WEJ-si-GkY" firstAttribute="centerX" secondItem="vAK-Zy-lLl" secondAttribute="centerX" id="pi7-MF-FQq"/>
-                            <constraint firstItem="WEJ-si-GkY" firstAttribute="top" secondItem="epO-Bp-89D" secondAttribute="bottom" constant="8" symbolic="YES" id="w5A-Bl-cPO"/>
                         </constraints>
                     </view>
                     <connections>
@@ -101,6 +86,45 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nul-EL-MQ9" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1502" y="-425"/>
+        </scene>
+        <!--Settings View Controller-->
+        <scene sceneID="Ke4-RM-wRl">
+            <objects>
+                <viewController storyboardIdentifier="SettingsViewController" id="SoX-5y-RW0" customClass="SettingsViewController" customModule="CryptoTracker" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="qFP-h5-Ifw">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="30" minValue="30" maxValue="50" translatesAutoresizingMaskIntoConstraints="NO" id="epO-Bp-89D">
+                                <rect key="frame" x="62" y="75" width="269" height="31"/>
+                            </slider>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Refresh every 30 sec" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WEJ-si-GkY">
+                                <rect key="frame" x="116" y="113" width="161" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="erF-zi-kIA"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="epO-Bp-89D" firstAttribute="centerX" secondItem="qFP-h5-Ifw" secondAttribute="centerX" id="Btz-f1-idU"/>
+                            <constraint firstItem="epO-Bp-89D" firstAttribute="leading" secondItem="erF-zi-kIA" secondAttribute="leading" constant="64" id="LZ6-Kw-WHQ"/>
+                            <constraint firstItem="WEJ-si-GkY" firstAttribute="centerX" secondItem="qFP-h5-Ifw" secondAttribute="centerX" id="R9u-Fd-kPx"/>
+                            <constraint firstItem="WEJ-si-GkY" firstAttribute="top" secondItem="epO-Bp-89D" secondAttribute="bottom" constant="8" symbolic="YES" id="SDj-6i-vZX"/>
+                            <constraint firstItem="epO-Bp-89D" firstAttribute="centerX" secondItem="qFP-h5-Ifw" secondAttribute="centerX" id="Xyt-FC-pSL"/>
+                            <constraint firstItem="epO-Bp-89D" firstAttribute="top" secondItem="erF-zi-kIA" secondAttribute="top" constant="16" id="hH3-lL-EAa"/>
+                            <constraint firstItem="erF-zi-kIA" firstAttribute="trailing" secondItem="epO-Bp-89D" secondAttribute="trailing" constant="64" id="lZu-gr-tb5"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="refreshRateLabel" destination="WEJ-si-GkY" id="uom-IY-ehy"/>
+                        <outlet property="refreshRateSlider" destination="epO-Bp-89D" id="2Pp-qF-hML"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="UL1-69-tUr" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2421" y="-425"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="9M2-Jp-ZR0">

@@ -16,6 +16,7 @@ class Coordinator {
     private lazy var coinGekoAPI = CoinGeckoAPI(networkService: networkService)
     private lazy var storage = FavoritesStorage()
     private lazy var loadCoinsUseCase = LoadCoinsUseCase(service: coinGekoAPI)
+    private lazy var settingsUseCase = SettingsUseCase(coinLoadingConfiguration: loadCoinsUseCase)
     
     private var cancellables = Set<AnyCancellable>()
 
@@ -99,7 +100,10 @@ class Coordinator {
     }
     
     private func showSettings() {
-        print("show settings")
+        let viewModel = SettingsViewModel(useCase: settingsUseCase)
+        let viewController: SettingsViewController = storyboard.instantiateViewController(withIdentifier: .settings)
+        viewController.viewModel = viewModel
+        navigationController.pushViewController(viewController, animated: true)
     }
     
     private func showDetails(for coin: any CryptoModel) {

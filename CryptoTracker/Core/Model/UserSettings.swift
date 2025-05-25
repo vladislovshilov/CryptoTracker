@@ -16,6 +16,9 @@ import Foundation
 //}
 
 final class UserSettings: ObservableObject {
+    @UserDefault(key: "minRefreshRate", defaultValue: 6)
+    static var minRefreshRate: UInt8
+    
     @UserDefault(key: "refreshRate", defaultValue: 15)
     static var refreshRate: UInt8
     

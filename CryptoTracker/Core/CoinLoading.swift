@@ -13,6 +13,10 @@ protocol ErrorRepresentable {
     var errorPublisher: CurrentValueSubject<String?, Never> { get }
 }
 
+protocol CoinLoadingConfiguring {
+    func changeRefreshRate(to value: UInt8)
+}
+
 protocol CoinLoading: ErrorRepresentable {
     var coinsPublisher: CurrentValueSubject<[CryptoCurrency], Never> { get }
     
@@ -22,6 +26,4 @@ protocol CoinLoading: ErrorRepresentable {
     func loadNextPage()
     func refresh()
     func refreshPrices(force: Bool)
-    
-    func changeRefreshRate(to value: UInt8)
 }

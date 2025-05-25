@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-final class LoadCoinsUseCase: CoinLoading, PriceLogging {
+final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging {
     
     var errorMessage: String = "" {
         didSet {
