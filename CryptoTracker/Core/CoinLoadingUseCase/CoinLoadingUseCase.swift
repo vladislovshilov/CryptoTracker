@@ -12,7 +12,7 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
     
     var errorMessage: String = "" {
         didSet {
-            errorPublisher.send(errorMessage)
+            errorPublisher.send(error?.errorDescription ?? errorMessage)
         }
     }
 
@@ -28,6 +28,7 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
     private var coins: [CryptoCurrency] = []
     private var lastLoadedAt: Date?
     private var lastPriceUpdateAt: Date?
+    private var error: NetworkError?
     
     private let coinService: CoinGeckoAPI
     
@@ -103,7 +104,8 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
                 logUpdated(updated, for: coins)
             } catch {
                 print("and getting error")
-                errorMessage = "Failed to update prices: \(error.localizedDescription)"
+                self.error = error as? NetworkError ?? .unknown
+                errorMessage = "Failed to update prices: \(error)"
             }
         }
     }
@@ -130,6 +132,7 @@ extension LoadCoinsUseCase {
             logUpdated(coins, for: coins.map { $0 })
         } catch {
             print("and getting error")
+            self.error = error as? NetworkError ?? .unknown
             errorMessage = "Failed to update coins: \(error)"
         }
     }

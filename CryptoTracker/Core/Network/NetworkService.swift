@@ -15,11 +15,15 @@ final class NetworkService: NetworkServiceProtocol {
     func fetch<T: Decodable>(_ urlRequest: URLRequest) async throws -> T {
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
 
-        guard let httpResponse = response as? HTTPURLResponse,
-              200..<300 ~= httpResponse.statusCode else {
+        guard let httpResponse = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
         }
-
-        return try JSONDecoder().decode(T.self, from: data)
+        
+        let code = httpResponse.statusCode
+        if 200..<300 ~= code {
+            return try JSONDecoder().decode(T.self, from: data)
+        } else {
+            throw NetworkError(statusCode: code)
+        }
     }
 }
