@@ -39,6 +39,7 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationItem.leftBarButtonItem = nil
+        navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.reversed().dropLast() ?? nil
     }
     
     // MARK: Setup

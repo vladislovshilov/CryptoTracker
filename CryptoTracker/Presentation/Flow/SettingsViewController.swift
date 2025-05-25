@@ -16,6 +16,8 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
     @IBOutlet private weak var appThemeSwitch: UISwitch!
     @IBOutlet private weak var appThemeLabel: UILabel!
     
+    private var shouldRemoveItem = true
+    
     private var cancellables = Set<AnyCancellable>()
 
     override func viewDidLoad() {
@@ -42,6 +44,10 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationItem.leftBarButtonItem = nil
+        if shouldRemoveItem {
+            shouldRemoveItem = false
+            navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.dropLast()
+        }
     }
     
     private func setupUI() {
@@ -62,5 +68,9 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
     
     @IBAction func switchValueDidChange(_ sender: Any) {
         viewModel.toggleAppTheme()
+    }
+    
+    @IBAction private func clearButtonDidPress(_ sender: Any) {
+        viewModel.cleanUserDefaults()
     }
 }

@@ -15,10 +15,12 @@ final class SettingsManager: SettingsOberving, SettingsUseCasing {
     
     private var windows: [UIWindow?]
     private let coinLoadingConfiguration: CoinLoadingConfiguring
+    private let storage: FavoritesStoring
     
-    init(windows: [UIWindow?], coinLoadingConfiguration: CoinLoadingConfiguring) {
+    init(windows: [UIWindow?], coinLoadingConfiguration: CoinLoadingConfiguring, storage: FavoritesStoring) {
         self.windows = windows
         self.coinLoadingConfiguration = coinLoadingConfiguration
+        self.storage = storage
         
         refreshRate = .init(UserSettings.refreshRate)
         appTheme = .init(AppTheme(rawValue: UserSettings.appTheme) ?? .light)
@@ -39,5 +41,9 @@ final class SettingsManager: SettingsOberving, SettingsUseCasing {
         case .dark:
             windows.forEach { $0?.overrideUserInterfaceStyle = .dark }
         }
+    }
+    
+    func clearUserDefaults() {
+        storage.removeAll()
     }
 }

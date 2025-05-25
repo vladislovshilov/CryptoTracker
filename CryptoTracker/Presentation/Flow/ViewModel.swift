@@ -21,23 +21,25 @@ final class ViewModel: ViewModeling, PriceLogging {
 //    private let perPage = 20
     
     private let useCase: CoinLoading
-    private let storage: FavoritesStorageProtocol
+    private let storage: FavoritesStoring
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(useCase: CoinLoading, storage: FavoritesStorageProtocol) {
+    init(useCase: CoinLoading, storage: FavoritesStoring) {
         self.useCase = useCase
         self.storage = storage
     }
     
     func onAppear() {
         bindUseCase()
-        isLoading = true
-        if cryptos.isEmpty {
-            useCase.load(force: true)
-        } else {
-            useCase.refreshPrices(force: true)
-        }
+        cryptos = useCase.currentCoins()
+
+//        if cryptos.isEmpty {
+//            isLoading = true
+//            useCase.load(force: true)
+//        } else {
+//            useCase.refreshPrices(force: true)
+//        }
     }
     
     func onDisappear() {

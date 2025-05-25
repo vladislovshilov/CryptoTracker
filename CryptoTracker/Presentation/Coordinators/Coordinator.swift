@@ -19,7 +19,7 @@ class Coordinator {
     private lazy var coinGekoAPI = CoinGeckoAPI(networkService: networkService)
     private lazy var storage = FavoritesStorage()
     private lazy var loadCoinsUseCase = LoadCoinsUseCase(service: coinGekoAPI)
-    private lazy var settingsService = SettingsManager(windows: windows, coinLoadingConfiguration: loadCoinsUseCase)
+    private lazy var settingsService = SettingsManager(windows: windows, coinLoadingConfiguration: loadCoinsUseCase, storage: storage)
     
     private var cancellables = Set<AnyCancellable>()
 
@@ -27,6 +27,7 @@ class Coordinator {
         self.windows = windows
         self.navigationController = navigationController
         settingsService.changeAppTheme(to: AppTheme(rawValue: UserSettings.appTheme) ?? .light)
+        loadCoinsUseCase.load(force: true)
     }
 
     func start() {
@@ -49,26 +50,7 @@ class Coordinator {
         let vc: ViewController = storyboard.instantiateViewController(withIdentifier: .vc)
         vc.viewModel = vm
         
-        vc.filterTap
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] errorMessage in
-                self?.showFilters()
-            }
-            .store(in: &cancellables)
-        
-        vc.favouriteTap
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] errorMessage in
-                self?.showFavourites()
-            }
-            .store(in: &cancellables)
-        
-        vc.settingsTap
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] errorMessage in
-                self?.showSettings()
-            }
-            .store(in: &cancellables)
+        bindNavigationButtons(for: vc)
         
         navigationController.pushViewController(vc, animated: true)
     }
@@ -93,6 +75,8 @@ class Coordinator {
         let vc: FavouritesViewController = storyboard.instantiateViewController(withIdentifier: .favourites)
         vc.viewModel = vm
         
+        bindNavigationButtons(for: vc)
+        
         vc.popVC = { [weak self] in
             self?.navigationController.popViewController(animated: true)
         }
@@ -108,11 +92,41 @@ class Coordinator {
         let viewModel = SettingsViewModel(useCase: settingsService)
         let viewController: SettingsViewController = storyboard.instantiateViewController(withIdentifier: .settings)
         viewController.viewModel = viewModel
+        
+        bindNavigationButtons(for: viewController)
+        
         navigationController.pushViewController(viewController, animated: true)
     }
     
     private func showDetails(for coin: any CryptoModel) {
         print("Need to show \(coin.name)")
         navigationController.showAlert(title: "\(coin.name) price ", message: "\(coin.currentPrice) | \(coin.marketCap ?? 0) | \(coin.totalVolume ?? 0)")
+    }
+}
+
+// MARK: - Helpers
+
+extension Coordinator {
+    private func bindNavigationButtons(for vc: BaseViewController<some ViewModeling>) {
+        vc.filterTap
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] errorMessage in
+                self?.showFilters()
+            }
+            .store(in: &cancellables)
+        
+        vc.favouriteTap
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] errorMessage in
+                self?.showFavourites()
+            }
+            .store(in: &cancellables)
+        
+        vc.settingsTap
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] errorMessage in
+                self?.showSettings()
+            }
+            .store(in: &cancellables)
     }
 }

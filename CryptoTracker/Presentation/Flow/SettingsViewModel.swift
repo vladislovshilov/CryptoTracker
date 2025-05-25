@@ -36,4 +36,8 @@ final class SettingsViewModel: ViewModeling {
         useCase.changeAppTheme(to: appThemeOn ? .light : .dark)
         appThemeOn.toggle()
     }
+    
+    func cleanUserDefaults() {
+        useCase.clearUserDefaults()
+    }
 }

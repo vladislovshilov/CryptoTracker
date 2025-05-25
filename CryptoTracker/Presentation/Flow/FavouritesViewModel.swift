@@ -18,11 +18,11 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
     let errorMessage = PassthroughSubject<String, Never>()
     
     private let useCase: CoinLoading
-    private let storage: FavoritesStorageProtocol
+    private let storage: FavoritesStoring
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(useCase: CoinLoading, storage: FavoritesStorageProtocol) {
+    init(useCase: CoinLoading, storage: FavoritesStoring) {
         self.storage = storage
         self.useCase = useCase
         

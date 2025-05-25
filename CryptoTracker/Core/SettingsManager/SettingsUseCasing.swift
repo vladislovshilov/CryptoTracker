@@ -12,9 +12,13 @@ protocol AppThemeConfiguring {
     func changeAppTheme(to theme: AppTheme)
 }
 
+protocol UserDefaultsCleaning {
+    func clearUserDefaults()
+}
+
 protocol SettingsOberving {
     var refreshRate: CurrentValueSubject<UInt8, Never> { get }
     var appTheme: CurrentValueSubject<AppTheme, Never> { get }
 }
 
-typealias SettingsUseCasing = CoinLoadingConfiguring & AppThemeConfiguring
+typealias SettingsUseCasing = CoinLoadingConfiguring & AppThemeConfiguring & UserDefaultsCleaning
