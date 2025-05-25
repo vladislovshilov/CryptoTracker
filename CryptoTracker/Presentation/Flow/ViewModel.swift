@@ -33,13 +33,6 @@ final class ViewModel: ViewModeling, PriceLogging {
     func onAppear() {
         bindUseCase()
         cryptos = useCase.currentCoins()
-
-//        if cryptos.isEmpty {
-//            isLoading = true
-//            useCase.load(force: true)
-//        } else {
-//            useCase.refreshPrices(force: true)
-//        }
     }
     
     func onDisappear() {

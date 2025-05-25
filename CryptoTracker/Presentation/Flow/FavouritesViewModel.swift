@@ -28,7 +28,7 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
         
         storage.favoritesPublisher
             .dropFirst()
-            .removeDuplicates()
+//            .removeDuplicates()
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] coins in
                 self?.useCase.load(force: true)

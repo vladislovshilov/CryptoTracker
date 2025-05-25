@@ -11,8 +11,7 @@ import Combine
 class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     
     @IBOutlet private weak var tableView: UITableView!
-    
-    private var refreshIntervalLabel: UILabel!
+    private let emptyView = EmptyStateView(message: "No coins found")
     
     private var dataSource: UITableViewDiffableDataSource<Int, FavoriteCurrency>!
     private var cancellables = Set<AnyCancellable>()
@@ -25,6 +24,7 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] coins in
                 self?.updateSnapshot(with: coins.map { $0 })
+                self?.updateEmptyState(isEmpty: coins.isEmpty)
             }
             .store(in: &cancellables)
         
@@ -91,6 +91,16 @@ extension FavouritesViewController {
         snapshot.appendSections([0])
         snapshot.appendItems(coins)
         dataSource.apply(snapshot, animatingDifferences: true)
+    }
+    
+    private func updateEmptyState(isEmpty: Bool) {
+        if isEmpty {
+            tableView.backgroundView = emptyView
+            tableView.separatorStyle = .none
+        } else {
+            tableView.backgroundView = nil
+            tableView.separatorStyle = .singleLine
+        }
     }
 }
 
