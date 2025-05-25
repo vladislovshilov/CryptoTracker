@@ -6,19 +6,19 @@
 //
 
 import UIKit
-
-protocol ViewModeling {
-    func onAppear()
-    func onDisappear()
-}
+import Combine
 
 class BaseViewController<ViewModel: ViewModeling>: UIViewController {
     
-    var onSettingsButtonTap: (() -> Void)?
-    var onFavouritesButtonTap: (() -> Void)?
-    var onFilterTap: (() -> Void)?
+    let settingsTap = PassthroughSubject<Void, Never>()
+    let favouriteTap = PassthroughSubject<Void, Never>()
+    let filterTap = PassthroughSubject<Void, Never>()
+    
+    var popVC: (() -> Void)?
     
     var viewModel: ViewModel!
+    
+    private var activityIndicator: UIActivityIndicatorView?
     
     init(viewModel: ViewModel) {
         self.viewModel = viewModel
@@ -36,12 +36,48 @@ class BaseViewController<ViewModel: ViewModeling>: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        viewModel.onAppear()
+        viewModel.onAppear?()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        viewModel.onDisappear()
+        viewModel.onDisappear?()
+    }
+    
+    func toggleLoading(isLoading: Bool) {
+        if isLoading {
+            showLoading()
+        } else {
+            hideLoading()
+        }
+    }
+    
+    private func showLoading() {
+        DispatchQueue.main.async {
+            if self.activityIndicator == nil {
+                let indicator = UIActivityIndicatorView(style: .large)
+                indicator.translatesAutoresizingMaskIntoConstraints = false
+                indicator.hidesWhenStopped = true
+                indicator.color = .gray
+                
+                self.view.addSubview(indicator)
+                NSLayoutConstraint.activate([
+                    indicator.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+                    indicator.centerYAnchor.constraint(equalTo: self.view.centerYAnchor)
+                ])
+                
+                self.activityIndicator = indicator
+            }
+            self.activityIndicator?.startAnimating()
+            self.view.isUserInteractionEnabled = false
+        }
+    }
+
+    private func hideLoading() {
+        DispatchQueue.main.async {
+            self.activityIndicator?.stopAnimating()
+            self.view.isUserInteractionEnabled = true
+        }
     }
     
     private func setupNavigationBarButtons() {
@@ -56,17 +92,17 @@ class BaseViewController<ViewModel: ViewModeling>: UIViewController {
     
     @objc private func settingsBarButtonTapped() {
         print("settings bar button tapped")
-        onSettingsButtonTap?()
+        settingsTap.send()
     }
 
     @objc private func favouritesBarButtonTapped() {
-        onFavouritesButtonTap?()
         print("favourites bar button tapped")
+        favouriteTap.send()
     }
     
     @objc private func filtersBarButtonTapped() {
         print("filters bar button tapped")
-        onFilterTap?()
+        filterTap.send()
     }
 
 }
