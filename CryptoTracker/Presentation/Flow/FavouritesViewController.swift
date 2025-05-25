@@ -139,7 +139,6 @@ extension FavouritesViewController: UITableViewDelegate {
         let contentHeight = scrollView.contentSize.height
         let height = scrollView.frame.size.height
         
-        // Если скроллим почти до низа (например, последние 100 поинтов)
         if offsetY > contentHeight - height - 100 {
             viewModel.loadNextPage()
         }
