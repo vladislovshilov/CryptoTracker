@@ -33,7 +33,6 @@ final class LoadCoinsUseCase: CoinLoading, PriceLogging {
     
     private var refreshTask: Task<Void, Never>?
     private var refreshTimer: AnyCancellable?
-    private var cancellables = Set<AnyCancellable>()
     
     init(service: CoinGeckoAPI) {
         self.coinService = service
