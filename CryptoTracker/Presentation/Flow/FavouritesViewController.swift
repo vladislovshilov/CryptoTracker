@@ -126,8 +126,8 @@ extension FavouritesViewController: UITableViewDelegate {
         let contentHeight = scrollView.contentSize.height
         let height = scrollView.frame.size.height
         
-        if offsetY > contentHeight - height - 100 {
-            viewModel.loadNextPage()
+        if offsetY > contentHeight - height - 1 {
+            viewModel.userDidScrollNearBottom()
         }
     }
     

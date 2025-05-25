@@ -32,7 +32,7 @@ final class ViewModel: ViewModeling, PriceLogging {
     
     func onAppear() {
         bindUseCase()
-        cryptos = useCase.currentCoins()
+        cryptos = Array(useCase.currentCoins())
     }
     
     func onDisappear() {
@@ -48,7 +48,7 @@ final class ViewModel: ViewModeling, PriceLogging {
     private func bindUseCase() {
         useCase.coinsPublisher
             .sink { [weak self] coins in
-                self?.cryptos = coins
+                self?.cryptos = Array(coins)
                 self?.populateFavouritesIfNeeded()
                 self?.isLoading = false
             }

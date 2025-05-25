@@ -8,11 +8,11 @@
 import Foundation
 
 protocol PriceLogging {
-    func logUpdated(_ updated: [CryptoCurrency], for models: [any CryptoModel])
+    func logUpdated(_ updated: Set<CryptoCurrency>, for models: Set<some CryptoModel>)
 }
 
 extension PriceLogging {
-    func logUpdated(_ updated: [CryptoCurrency], for models: [any CryptoModel]) {
+    func logUpdated(_ updated: Set<CryptoCurrency>, for models: Set<some CryptoModel>) {
         print("Prices update \(Date()):")
         var hasUpdate = false
         for model in models {

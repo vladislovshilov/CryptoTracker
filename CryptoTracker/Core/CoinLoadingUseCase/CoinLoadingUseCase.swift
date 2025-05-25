@@ -9,26 +9,25 @@ import Foundation
 import Combine
 
 final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging {
-    
-    var errorMessage: String = "" {
-        didSet {
-            errorPublisher.send(error?.errorDescription ?? errorMessage)
-        }
-    }
 
-    var coinsPublisher = CurrentValueSubject<[CryptoCurrency], Never>([])
+    var coinsPublisher = CurrentValueSubject<Set<CryptoCurrency>, Never>([])
     var errorPublisher = CurrentValueSubject<String?, Never>(nil)
     
     private let queue = DispatchQueue(label: "coins.queue")
     
     private(set) var currentPage = 0
     private var bunchAmount = 20
-    private var canLoadMore = true
+    private var hasMore = true
     
-    private var coins: [CryptoCurrency] = []
+    private var coins: Set<CryptoCurrency> = []
     private var lastLoadedAt: Date?
     private var lastPriceUpdateAt: Date?
     private var error: NetworkError?
+    private var errorMessage: String = "" {
+        didSet {
+            errorPublisher.send(error?.errorDescription ?? errorMessage)
+        }
+    }
     
     private let coinService: CoinGeckoAPI
     
@@ -49,8 +48,8 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
     
     // MARK: CoinLoading
 
-    func currentCoins() -> [CryptoCurrency] {
-        var result: [CryptoCurrency] = []
+    func currentCoins() -> Set<CryptoCurrency> {
+        var result: Set<CryptoCurrency> = []
         queue.sync {
             result = self.coins
         }
@@ -71,12 +70,10 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
         }
     }
     
-    func loadNextPage() {
-        currentPage += 1
-        load(force: true)
-    }
-    
     func refresh() {
+        currentPage = 1
+        hasMore = true
+        coins = []
         load(force: true)
     }
     
@@ -97,11 +94,12 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
                 
                 let ids = coins.map { $0.id }
                 let updated = try await coinService.fetchPrices(for: ids)
-                coins = updated
+                let updateSet = Set(updated)
+                coins = updateSet
                 coinsPublisher.send(coins)
                 
                 lastPriceUpdateAt = Date()
-                logUpdated(updated, for: coins)
+                logUpdated(updateSet, for: coins)
             } catch {
                 print("and getting error")
                 self.error = error as? NetworkError ?? .unknown
@@ -125,11 +123,15 @@ extension LoadCoinsUseCase {
             try Task.checkCancellation()
             print("Fetch coins")
             let newCoins = try await coinService.fetchCryptos(page: currentPage, perPage: bunchAmount)
-            coins = newCoins
+            newCoins.forEach { curr in
+                coins.insert(curr)
+            }
+            hasMore = newCoins.count == bunchAmount
+            currentPage += 1
             coinsPublisher.send(coins)
             
             lastLoadedAt = Date()
-            logUpdated(coins, for: coins.map { $0 })
+            logUpdated(Set(newCoins), for: coins)
         } catch {
             print("and getting error")
             self.error = error as? NetworkError ?? .unknown

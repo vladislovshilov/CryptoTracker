@@ -17,6 +17,8 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
     let coinSelection = PassthroughSubject<any CryptoModel, Never>()
     let errorMessage = PassthroughSubject<String, Never>()
     
+    private let paginationSubject = PassthroughSubject<Void, Never>()
+    
     private let useCase: CoinLoading
     private let storage: FavoritesStoring
     
@@ -25,6 +27,14 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
     init(useCase: CoinLoading, storage: FavoritesStoring) {
         self.storage = storage
         self.useCase = useCase
+        
+        paginationSubject
+            .dropFirst()
+            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+            .sink { [weak self] in
+                self?.useCase.load(force: true)
+            }
+            .store(in: &cancellables)
         
         storage.favoritesPublisher
             .dropFirst()
@@ -58,8 +68,8 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
         storage.toggle(coin)
     }
     
-    func loadNextPage() {
-//        useCase.loadNextPage()
+    func userDidScrollNearBottom() {
+        paginationSubject.send(())
     }
     
     func reload() {
@@ -76,9 +86,9 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
             .combineLatest(storage.favoritesPublisher)
             .map { coins, favorites -> [FavoriteCurrency] in
                 coins
-                    .filter { coin in
-                        favorites.contains(where: { $0.id == coin.id })
-                    }
+//                    .filter { coin in
+//                        favorites.contains(where: { $0.id == coin.id })
+//                    }
                     .map { $0.toFavouriteModel() }
             }
             .sink(receiveValue: { [weak self] coins in
