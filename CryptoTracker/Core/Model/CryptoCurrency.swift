@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct CryptoCurrency: Codable, Identifiable {
+struct CryptoCurrency: CryptoModel {
     let id: String
     let symbol: String
     let name: String
@@ -25,5 +25,9 @@ struct CryptoCurrency: Codable, Identifiable {
         case marketCapRank = "market_cap_rank"
         case totalVolume = "total_volume"
         case priceChangePercentage24h = "price_change_percentage_24h"
+    }
+    
+    func toFavouriteModel() -> FavoriteCurrency {
+        .init(id: id, name: name, marketCap: marketCap, currentPrice: currentPrice, totalVolume: totalVolume)
     }
 }
