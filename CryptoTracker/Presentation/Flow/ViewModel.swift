@@ -38,6 +38,19 @@ final class ViewModel: ViewModeling, PriceLogging {
         unbindUseCase()
     }
     
+    func reload() {
+        isLoading = true
+        if cryptos.isEmpty {
+            useCase.load(force: true, isBackground: false)
+        } else {
+            useCase.refreshPrices(force: true, isBackground: false)
+        }
+    }
+    
+    func loadNextPage() {
+//        useCase.loadNextPage()
+    }
+    
     func selectCoin(at index: Int) {
         guard cryptos.indices.contains(index) else { return }
         let coin = cryptos[index]

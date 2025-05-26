@@ -121,16 +121,6 @@ extension FavouritesViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 
 extension FavouritesViewController: UITableViewDelegate {
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let offsetY = scrollView.contentOffset.y
-        let contentHeight = scrollView.contentSize.height
-        let height = scrollView.frame.size.height
-        
-        if offsetY > contentHeight - height - 100 {
-            viewModel.loadNextPage()
-        }
-    }
-    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         viewModel.selectCoin(at: indexPath.row)
     }

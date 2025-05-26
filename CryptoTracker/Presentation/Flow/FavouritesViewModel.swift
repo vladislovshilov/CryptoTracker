@@ -57,10 +57,6 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
         storage.toggle(coin)
     }
     
-    func loadNextPage() {
-//        useCase.loadNextPage()
-    }
-    
     func reload() {
         isLoading = true
         if favoriteCoins.isEmpty {
