@@ -11,6 +11,7 @@ enum VCNames: String {
     case vc = "ViewController"
     case favourites = "FavouritesViewController"
     case settings = "SettingsViewController"
+    case details = "DetailsViewController"
     
     var identifier: String { rawValue }
 }
