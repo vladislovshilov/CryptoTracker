@@ -15,6 +15,8 @@ class ViewController: BaseViewController<ViewModel> {
     
     private let emptyView = EmptyStateView(message: "No coins found")
     
+    private var dataSource: UICollectionViewDiffableDataSource<Int, ViewModel.ListItem>!
+    
     private var cancellables = Set<AnyCancellable>()
     
     override func viewDidLoad() {
@@ -23,31 +25,13 @@ class ViewController: BaseViewController<ViewModel> {
         setupCollectionView()
     }
     
-    private func setupCollectionView() {
-        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "Cell")
-        
-        let refreshControl = UIRefreshControl()
-        refreshControl.addTarget(self, action: #selector(didPullToRefresh), for: .valueChanged)
-        collectionView.refreshControl = refreshControl
-        
-        collectionView.reloadData()
-    }
-    
     private func bindViewModel() {
-        viewModel.$cryptos
-            .dropFirst()
-            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+        viewModel.listItemsPublisher
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] coins in
-                guard !coins.isEmpty else { return }
-                self?.updateEmptyState(isEmpty: coins.isEmpty)
-                
-                let result = coins.map {
-                    "\($0.name) - \($0.currentPrice)"
-                }.joined(separator: "\n")
-                
-                self?.label.text = result
-                self?.collectionView.reloadData()
+            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+            .sink { [weak self] items in
+                self?.applySnapshot(items: items)
+                self?.updateEmptyState(isEmpty: items.isEmpty)
             }
             .store(in: &cancellables)
         
@@ -56,8 +40,7 @@ class ViewController: BaseViewController<ViewModel> {
             .sink { [weak self] loading in
                 if loading {
                     // TODO: - in vm?
-                    self?.label.text = "loading..."
-                    self?.updateEmptyState(isEmpty: self?.viewModel.cryptos.isEmpty ?? true)
+                    self?.label.text = loading ? "loading..." : ""
                 }
                 self?.toggleLoading(isLoading: loading)
             }
@@ -67,6 +50,15 @@ class ViewController: BaseViewController<ViewModel> {
     @objc private func didPullToRefresh() {
         viewModel.reload()
         collectionView.refreshControl?.endRefreshing()
+    }
+}
+
+
+// MARK: - StableCoinCarouselCellDelegate
+
+extension ViewController: StableCoinCarouselCellDelegate {
+    func didSelectStableCoin(_ crypto: CryptoCurrency, in cell: StableCoinCarouselCell) {
+        viewModel.selectCoin(crypto)
     }
 }
 
@@ -80,30 +72,86 @@ extension ViewController {
             collectionView.backgroundView = nil
         }
     }
-}
-
-// MARK: - UICollectionViewDataSource
-
-extension ViewController: UICollectionViewDataSource {
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return viewModel.sectionTypes.count
+    
+    private func setupCollectionView() {
+        collectionView.setCollectionViewLayout(createLayoutWithDistinctSections(), animated: true)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.backgroundColor = .systemGray6 // Или другой цвет для выделения
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.register(StableCoinCarouselCell.self, forCellWithReuseIdentifier: StableCoinCarouselCell.reuseIdentifier)
+        collectionView.register(CryptoListItemCell.self, forCellWithReuseIdentifier: CryptoListItemCell.reuseIdentifier)
+        collectionView.register(HeaderCell.self, forCellWithReuseIdentifier: HeaderCell.reuseIdentifier)
+        
+        configureDataSource()
+        
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(didPullToRefresh), for: .valueChanged)
+        collectionView.refreshControl = refreshControl
     }
     
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        let sectionType = viewModel.sectionTypes[section]
-        switch sectionType {
-        case .stables:
-            return viewModel.stables.count
-        case .all:
-            return viewModel.cryptos.count
+    private func applySnapshot(items: [ViewModel.ListItem]) {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, ViewModel.ListItem>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(items, toSection: 0)
+        dataSource.apply(snapshot, animatingDifferences: true)
+    }
+    
+    private func createLayoutWithDistinctSections() -> UICollectionViewLayout {
+        let layout = UICollectionViewCompositionalLayout { (sectionIndex, layoutEnvironment) -> NSCollectionLayoutSection? in
+            let estimatedHeight: CGFloat = 50
+            let itemSize = NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .estimated(estimatedHeight)
+            )
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            
+            let groupSize = NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .estimated(estimatedHeight)
+            )
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+            
+            let section = NSCollectionLayoutSection(group: group)
+            section.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+            section.interGroupSpacing = 10
+            
+            return section
         }
+        return layout
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let sectionType = viewModel.sectionTypes[indexPath.section]
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath)
-        cell.backgroundColor = sectionType == .stables ? .blue : .red
-        return cell
+    private func configureDataSource() {
+        dataSource = UICollectionViewDiffableDataSource<Int, ViewModel.ListItem>(collectionView: collectionView) {
+            (collectionView, indexPath, listItem) -> UICollectionViewCell? in
+
+            switch listItem {
+            case .stableCoinCarousel(let stableCoins):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: StableCoinCarouselCell.reuseIdentifier, for: indexPath) as? StableCoinCarouselCell else {
+                    fatalError("Unable to dequeue StableCoinCarouselCell")
+                }
+                cell.configure(with: stableCoins)
+                cell.delegate = self
+                return cell
+
+            case .crypto(let cryptoCurrency):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CryptoListItemCell.reuseIdentifier, for: indexPath) as? CryptoListItemCell else {
+                    fatalError("Unable to dequeue CryptoListItemCell")
+                }
+                cell.configure(with: cryptoCurrency)
+                return cell
+
+            case .header(let title):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: HeaderCell.reuseIdentifier, for: indexPath) as? HeaderCell else {
+                    fatalError("Unable to dequeue CryptoListItemCell")
+                }
+                cell.configure(with: title)
+                return cell
+            }
+        }
+
+        var initialSnapshot = NSDiffableDataSourceSnapshot<Int, ViewModel.ListItem>()
+        initialSnapshot.appendSections([0])
+        dataSource.apply(initialSnapshot, animatingDifferences: false)
     }
 }
 
@@ -111,8 +159,11 @@ extension ViewController: UICollectionViewDataSource {
 
 extension ViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let sectionType = viewModel.sectionTypes[indexPath.section]
-        viewModel.selectCoin(in: sectionType, at: indexPath.row)
+        collectionView.deselectItem(at: indexPath, animated: true)
+        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
+        if case let .crypto(coin) = item {
+            viewModel.selectCoin(coin)
+        }
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -124,9 +175,4 @@ extension ViewController: UICollectionViewDelegate, UICollectionViewDelegateFlow
             viewModel.loadNextPage()
         }
     }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 150, height: 80)
-    }
 }
-
