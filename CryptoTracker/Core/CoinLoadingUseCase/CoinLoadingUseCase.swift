@@ -126,6 +126,7 @@ extension LoadCoinsUseCase {
             try Task.checkCancellation()
             print("Fetch coins")
             isLoading = true
+            
             let newCoins = try await coinService.fetchCryptos(page: currentPage, perPage: bunchAmount)
             coins = newCoins
             coinsPublisher.send(coins)

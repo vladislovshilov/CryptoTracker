@@ -10,9 +10,13 @@ import Combine
 
 final class ViewModel: ViewModeling, PriceLogging {
     
+    enum SectionType: String { case stables, all }
+    
     @Published private(set) var cryptos: [CryptoCurrency] = []
+    @Published private(set) var stables: [CryptoCurrency] = []
     @Published var filterText: String = ""
     @Published var isLoading = false
+    @Published var sectionTypes: [SectionType] = []
     
     let coinSelection = PassthroughSubject<CryptoCurrency, Never>()
     
@@ -51,9 +55,16 @@ final class ViewModel: ViewModeling, PriceLogging {
 //        useCase.loadNextPage()
     }
     
-    func selectCoin(at index: Int) {
-        guard cryptos.indices.contains(index) else { return }
-        let coin = cryptos[index]
+    func selectCoin(in section: SectionType, at index: Int) {
+        var coin: CryptoCurrency
+        switch section {
+        case .stables:
+            guard stables.indices.contains(index) else { return }
+            coin = stables[index]
+        case .all:
+            guard cryptos.indices.contains(index) else { return }
+            coin = cryptos[index]
+        }
         coinSelection.send(coin)
     }
     
@@ -62,9 +73,17 @@ final class ViewModel: ViewModeling, PriceLogging {
         
         useCase.coinsPublisher
             .sink { [weak self] coins in
-                self?.cryptos = coins
-                self?.populateFavouritesIfNeeded()
-                self?.isLoading = false
+                guard let self else { return }
+                stables = coins.filter { $0.id == "usd-coin" || $0.id == "tether" || $0.id == "ethereum" }
+                if !stables.isEmpty {
+                    sectionTypes = [.stables, .all]
+                } else {
+                    sectionTypes = [.all]
+                }
+                
+                cryptos = coins
+                populateFavouritesIfNeeded()
+                isLoading = false
             }
             .store(in: &cancellables)
         

@@ -15,8 +15,6 @@ class ViewController: BaseViewController<ViewModel> {
     
     private let emptyView = EmptyStateView(message: "No coins found")
     
-    private var dataSource: UICollectionViewDiffableDataSource<Int, CryptoCurrency>!
-    
     private var cancellables = Set<AnyCancellable>()
     
     override func viewDidLoad() {
@@ -27,12 +25,6 @@ class ViewController: BaseViewController<ViewModel> {
     
     private func setupCollectionView() {
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "Cell")
-        
-        dataSource = UICollectionViewDiffableDataSource<Int, CryptoCurrency>.init(collectionView: collectionView, cellProvider: { collectionView, indexPath, itemIdentifier in
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath)
-            cell.backgroundColor = .red
-            return cell
-        })
         
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(didPullToRefresh), for: .valueChanged)
@@ -48,7 +40,6 @@ class ViewController: BaseViewController<ViewModel> {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] coins in
                 guard !coins.isEmpty else { return }
-                self?.updateSnapshot(with: coins.map { $0 })
                 self?.updateEmptyState(isEmpty: coins.isEmpty)
                 
                 let result = coins.map {
@@ -82,13 +73,6 @@ class ViewController: BaseViewController<ViewModel> {
 // MARK: - Helpers
 
 extension ViewController {
-    private func updateSnapshot(with coins: [CryptoCurrency]) {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, CryptoCurrency>()
-        snapshot.appendSections([0])
-        snapshot.appendItems(coins)
-        dataSource.apply(snapshot, animatingDifferences: true)
-    }
-    
     private func updateEmptyState(isEmpty: Bool) {
         if isEmpty {
             collectionView.backgroundView = emptyView
@@ -102,25 +86,33 @@ extension ViewController {
 
 extension ViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        2
+        return viewModel.sectionTypes.count
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.cryptos.count
+        let sectionType = viewModel.sectionTypes[section]
+        switch sectionType {
+        case .stables:
+            return viewModel.stables.count
+        case .all:
+            return viewModel.cryptos.count
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let sectionType = viewModel.sectionTypes[indexPath.section]
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath)
-        cell.backgroundColor = .red
+        cell.backgroundColor = sectionType == .stables ? .blue : .red
         return cell
     }
 }
 
 // MARK: - UICollectionViewDelegate
 
-extension ViewController: UICollectionViewDelegate {
+extension ViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        viewModel.selectCoin(at: indexPath.row)
+        let sectionType = viewModel.sectionTypes[indexPath.section]
+        viewModel.selectCoin(in: sectionType, at: indexPath.row)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -131,6 +123,10 @@ extension ViewController: UICollectionViewDelegate {
         if offsetY > contentHeight - height - 100 {
             viewModel.loadNextPage()
         }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 150, height: 80)
     }
 }
 
