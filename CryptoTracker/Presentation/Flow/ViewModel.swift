@@ -15,7 +15,6 @@ final class ViewModel: ViewModeling, PriceLogging {
     @Published var isLoading = false
     
     let coinSelection = PassthroughSubject<CryptoCurrency, Never>()
-    let errorMessage = PassthroughSubject<String, Never>()
     
 //    private var currentPage = 1
 //    private let perPage = 20
@@ -46,6 +45,8 @@ final class ViewModel: ViewModeling, PriceLogging {
     }
     
     private func bindUseCase() {
+        isLoading = useCase.isLoading
+        
         useCase.coinsPublisher
             .sink { [weak self] coins in
                 self?.cryptos = coins
@@ -57,7 +58,6 @@ final class ViewModel: ViewModeling, PriceLogging {
         useCase.errorPublisher
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] errorMessage in
-                self?.errorMessage.send(errorMessage ?? "no error")
                 self?.isLoading = false
             }
             .store(in: &cancellables)

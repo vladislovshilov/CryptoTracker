@@ -28,6 +28,15 @@ class Coordinator {
         self.navigationController = navigationController
         settingsService.changeAppTheme(to: AppTheme(rawValue: UserSettings.appTheme) ?? .light)
         loadCoinsUseCase.load(force: true)
+        
+        loadCoinsUseCase.errorPublisher
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] errorMessage in
+                self?.navigationController.showAlert(title: "Error", message: errorMessage)
+            }
+            .store(in: &cancellables)
+            
     }
 
     func start() {
@@ -36,14 +45,6 @@ class Coordinator {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] coin in
                 self?.showDetails(for: coin)
-            }
-            .store(in: &cancellables)
-        
-        vm.errorMessage
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] errorMessage in
-                self?.navigationController.showAlert(title: "Error", message: errorMessage)
             }
             .store(in: &cancellables)
         
@@ -64,21 +65,13 @@ class Coordinator {
             }
             .store(in: &cancellables)
         
-        vm.errorMessage
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] errorMessage in
-                self?.navigationController.showAlert(title: "Error", message: errorMessage)
-            }
-            .store(in: &cancellables)
-        
         let vc: FavouritesViewController = storyboard.instantiateViewController(withIdentifier: .favourites)
         vc.viewModel = vm
         
         bindNavigationButtons(for: vc)
         
         vc.popVC = { [weak self] in
-            self?.navigationController.popViewController(animated: true)
+            self?.navigationController.popToRootViewController(animated: true)
         }
         
         navigationController.pushViewController(vc, animated: true)

@@ -9,7 +9,6 @@ import Foundation
 import Combine
 
 protocol ErrorRepresentable {
-    var errorMessage: String { get }
     var errorPublisher: CurrentValueSubject<String?, Never> { get }
 }
 
@@ -18,12 +17,13 @@ protocol CoinLoadingConfiguring {
 }
 
 protocol CoinLoading: ErrorRepresentable {
+    var isLoading: Bool { get }
     var coinsPublisher: CurrentValueSubject<[CryptoCurrency], Never> { get }
     
     func currentCoins() -> [CryptoCurrency]
     
-    func load(force: Bool)
+    func load(force: Bool, isBackground: Bool)
     func loadNextPage()
-    func refresh()
-    func refreshPrices(force: Bool)
+    func refresh(isBackground: Bool)
+    func refreshPrices(force: Bool, isBackground: Bool)
 }

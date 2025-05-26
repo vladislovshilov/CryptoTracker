@@ -17,33 +17,21 @@ protocol FavoritesStoring {
 }
 
 final class FavoritesStorage: FavoritesStoring {
+    
+    var favoritesPublisher: AnyPublisher<Set<FavoriteCurrency>, Never> {
+        subject.eraseToAnyPublisher()
+    }
+    
     private let key = "favoriteCoins"
     private let defaults = UserDefaults.standard
     private var favorites: Set<FavoriteCurrency> = []
     private let subject = CurrentValueSubject<Set<FavoriteCurrency>, Never>([])
 
-    var favoritesPublisher: AnyPublisher<Set<FavoriteCurrency>, Never> {
-        subject.eraseToAnyPublisher()
-    }
-
     init() {
         load()
     }
-
-    private func load() {
-        if let data = defaults.data(forKey: key),
-           let saved = try? JSONDecoder().decode(Set<FavoriteCurrency>.self, from: data) {
-            favorites = saved
-            subject.send(favorites)
-        }
-    }
-
-    private func save() {
-        if let data = try? JSONEncoder().encode(favorites) {
-            defaults.set(data, forKey: key)
-            subject.send(favorites)
-        }
-    }
+    
+    // MARK: FavoritesStoring
 
     func toggle(_ coin: FavoriteCurrency) {
         let favoritesIDs = favorites.map { $0.id }
@@ -69,5 +57,24 @@ final class FavoritesStorage: FavoritesStoring {
     func removeAll() {
         favorites.removeAll()
         save()
+    }
+}
+
+// MARK: - Helpers
+
+extension FavoritesStorage {
+    private func load() {
+        if let data = defaults.data(forKey: key),
+           let saved = try? JSONDecoder().decode(Set<FavoriteCurrency>.self, from: data) {
+            favorites = saved
+            subject.send(favorites)
+        }
+    }
+
+    private func save() {
+        if let data = try? JSONEncoder().encode(favorites) {
+            defaults.set(data, forKey: key)
+            subject.send(favorites)
+        }
     }
 }

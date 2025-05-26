@@ -27,6 +27,9 @@ enum NetworkError: Error {
             case .invalidResponse:
                 return "Invalid response from the server."
             case .statusCode(let code):
+                if code == 429 {
+                    return "Ooops...to much requests. Wait a bit..."
+                }
                 return "Something went wrong. Unexpected status code: \(code)."
             case .noData:
                 return "No data was returned from the server."
