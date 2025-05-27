@@ -8,6 +8,12 @@
 import Foundation
 import Combine
 
+///
+/// Этот сервис используется как единый source of truth для получения списка монет
+/// Дополнительно инкапсулирует в себя автоматическое обновление как всего списка, так и цен (fetch по ids)
+/// *coinsPublisher* каждый раз эмитит новые значения, вью модели слушают его
+///
+
 final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging {
     
     var isLoading = false
@@ -19,7 +25,7 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
     
     private let coinService: CoinGeckoAPI
     
-    private var coins: [CryptoCurrency] = []
+    private var coins: Set<CryptoCurrency> = []
     private var lastLoadedAt: Date?
     private var lastPriceUpdateAt: Date?
     private var error: NetworkError?
@@ -48,7 +54,7 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
     func currentCoins() -> [CryptoCurrency] {
         var result: [CryptoCurrency] = []
         queue.sync {
-            result = self.coins
+            result = Array(self.coins)
         }
         return result
     }
@@ -56,7 +62,7 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
     func load(force: Bool = false, isBackground: Bool = false) {
         let now = Date()
         guard force || lastLoadedAt == nil || now.timeIntervalSince(lastLoadedAt!) > TimeInterval(UserSettings.refreshRate) else {
-            coinsPublisher.send(coins)
+            coinsPublisher.send(Array(coins))
             return
         }
         
@@ -94,11 +100,11 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
                 isLoading = true
                 let ids = coins.map { $0.id }
                 let updated = try await coinService.fetchPrices(for: ids)
-                coins = updated
-                coinsPublisher.send(coins)
+                coins.formUnion(updated)
+                coinsPublisher.send(Array(coins))
                 
                 lastPriceUpdateAt = Date()
-                logUpdated(updated, for: coins)
+                logUpdated(updated, for: Array(coins))
             } catch {
                 print("and getting error")
                 self.error = error as? NetworkError ?? .unknown
@@ -128,11 +134,12 @@ extension LoadCoinsUseCase {
             isLoading = true
             
             let newCoins = try await coinService.fetchCryptos(page: currentPage, perPage: bunchAmount)
-            coins = newCoins
-            coinsPublisher.send(coins)
+            currentPage += 1
+            coins.formUnion(newCoins)
+            coinsPublisher.send(Array(coins))
             
             lastLoadedAt = Date()
-            logUpdated(coins, for: coins.map { $0 })
+            logUpdated(Array(coins), for: Array(coins).map { $0 })
         } catch {
             print("and getting error")
             self.error = error as? NetworkError ?? .unknown

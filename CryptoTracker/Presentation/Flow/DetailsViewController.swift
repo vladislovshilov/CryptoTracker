@@ -111,7 +111,7 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
     
     private func handleCoin(_ coin: CryptoCurrency) {
         titleLabel.text = coin.name
-        priceLabel.text = "$\(coin.currentPrice.prettyCurrency()) for 1\(coin.symbol.uppercased())"
+        priceLabel.text = "\(coin.currentPrice.prettyCurrency()) for 1\(coin.symbol.uppercased())"
         
         if let priceChange = coin.priceChangePercentage24h {
             priceChangeLabel.isHidden = false

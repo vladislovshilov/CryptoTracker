@@ -142,6 +142,7 @@
                                         <rect key="frame" x="318" y="27" width="59" height="24"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="24" id="Ng9-Hq-uT5"/>
+                                            <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="40" id="iph-Eb-oDi"/>
                                         </constraints>
                                         <buttonConfiguration key="configuration" style="tinted" title="save">
                                             <color key="baseForegroundColor" systemColor="systemYellowColor"/>
@@ -345,8 +346,8 @@
         <!--Hosting Controller-->
         <scene sceneID="fuC-71-nQe">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="9RB-aR-e32" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <hostingController id="Cy6-bC-1aZ" sceneMemberID="viewController"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="9RB-aR-e32" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1291" y="148"/>
         </scene>

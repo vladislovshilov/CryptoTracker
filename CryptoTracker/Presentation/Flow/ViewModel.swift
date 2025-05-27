@@ -47,6 +47,8 @@ final class ViewModel: ViewModeling, PriceLogging {
     private let useCase: CoinLoading
     private let storage: FavoritesStoring
     
+    private var isLoadingNextPage = false
+    
     private var cancellables = Set<AnyCancellable>()
     
     init(useCase: CoinLoading, storage: FavoritesStoring) {
@@ -73,7 +75,10 @@ final class ViewModel: ViewModeling, PriceLogging {
     }
     
     func loadNextPage() {
-        // TODO: -
+        guard !isLoadingNextPage else { return }
+        isLoadingNextPage = true
+
+        useCase.loadNextPage()
     }
     
     func selectCoin(_ coin: CryptoCurrency) {
@@ -86,6 +91,7 @@ final class ViewModel: ViewModeling, PriceLogging {
         useCase.coinsPublisher
             .sink(receiveValue: { [weak self] coins in
                 self?.isLoading = false
+                self?.isLoadingNextPage = false
                 self?.stables = coins.filter { $0.isStableCoin }
                 self?.cryptos = coins
             })
@@ -95,6 +101,7 @@ final class ViewModel: ViewModeling, PriceLogging {
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] errorMessage in
                 self?.isLoading = false
+                self?.isLoadingNextPage = false
             }
             .store(in: &cancellables)
     }

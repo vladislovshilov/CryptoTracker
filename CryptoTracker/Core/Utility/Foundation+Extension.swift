@@ -18,8 +18,13 @@ extension Double {
     func prettyCurrency(locale: Locale = Locale.current) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 0
-        formatter.maximumFractionDigits = 2
+        if self >= 1 {
+            formatter.minimumFractionDigits = 0
+            formatter.maximumFractionDigits = 2
+        } else {
+            formatter.minimumFractionDigits = 2
+            formatter.maximumFractionDigits = 8
+        }
         formatter.locale = locale
         return (formatter.string(from: NSNumber(value: self)) ?? "\(self)") + "$"
     }

@@ -18,7 +18,8 @@ protocol CryptoModel: Codable, Identifiable, Hashable, Equatable {
 
 extension CryptoModel {
     var isStableCoin: Bool {
-        id == "usd-coin" || id == "tether" || id == "ethereum"
+        let stablesIDS = ["usd-coin", "tether", "ethereum", "pyusd", "fdusd", "usds", "usd1"]
+        return stablesIDS.contains { $0 == id }
     }
     
     func hash(into hasher: inout Hasher) {
@@ -26,7 +27,6 @@ extension CryptoModel {
     }
     
     static func == (lhs: Self, rhs: Self) -> Bool {
-        print("Comparing \(lhs.id) and \(rhs.id)")
         return lhs.id == rhs.id
     }
 }

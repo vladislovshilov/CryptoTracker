@@ -71,9 +71,10 @@ extension ViewController {
     }
     
     private func setupCollectionView() {
+        view.backgroundColor = .systemGray6
         collectionView.setCollectionViewLayout(createLayoutWithDistinctSections(), animated: true)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.backgroundColor = .systemGray6 // Или другой цвет для выделения
+        collectionView.backgroundColor = .systemGray6
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.register(StableCoinCarouselCell.self, forCellWithReuseIdentifier: StableCoinCarouselCell.reuseIdentifier)
         collectionView.register(CryptoListItemCell.self, forCellWithReuseIdentifier: CryptoListItemCell.reuseIdentifier)
