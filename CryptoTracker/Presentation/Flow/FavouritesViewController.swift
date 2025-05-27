@@ -36,15 +36,11 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
             .store(in: &cancellables)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationItem.leftBarButtonItem = nil
-        navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.reversed().dropLast() ?? nil
-    }
-    
     // MARK: Setup
     
     private func setupUI() {
+        navigationItem.leftBarButtonItem = nil
+        navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.reversed().dropLast() ?? nil
         view.backgroundColor = .systemBackground
         setupTableView()
     }

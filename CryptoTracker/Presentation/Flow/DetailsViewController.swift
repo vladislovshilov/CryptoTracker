@@ -71,7 +71,15 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupUI()
+        bindViewModel()
+    }
+    
+    // MAKR: - Setup
+    
+    private func setupUI() {
         navigationItem.leftBarButtonItem = nil
+        navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.dropLast()
         
         let vc = UIHostingController(rootView: SwiftUIView(title: viewModel.coin.name))
         
@@ -89,7 +97,9 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
         ])
 
         vc.didMove(toParent: self)
-        
+    }
+    
+    private func bindViewModel() {
         viewModel.$coin
             .receive(on: DispatchQueue.main)
             .sink { [weak self] value in
@@ -104,10 +114,14 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
             }
             .store(in: &cancellables)
     }
+
+    // MARK: - Actions
     
-    @IBAction func saveButtonDidPress(_ sender: Any) {
+    @IBAction private func saveButtonDidPress(_ sender: Any) {
         viewModel.toggleFavourite()
     }
+    
+    // MARK: - Helpers
     
     private func handleFavourite(isFavourite: Bool) {
         if isFavourite {

@@ -8,11 +8,10 @@
 import UIKit
 import Combine
 
-class ViewController: BaseViewController<ViewModel> {
+class ViewController: BaseViewController<ViewModel>, StableCoinCarouselCellDelegate {
 
     @IBOutlet private weak var collectionView: UICollectionView!
     @IBOutlet private weak var label: UILabel!
-    
     private let emptyView = EmptyStateView(message: "No coins found")
     
     private var dataSource: UICollectionViewDiffableDataSource<Int, ViewModel.ListItem>!
@@ -24,6 +23,8 @@ class ViewController: BaseViewController<ViewModel> {
         bindViewModel()
         setupCollectionView()
     }
+    
+    // MARK: - Setup
     
     private func bindViewModel() {
         viewModel.listItemsPublisher
@@ -39,7 +40,6 @@ class ViewController: BaseViewController<ViewModel> {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] loading in
                 if loading {
-                    // TODO: - in vm?
                     self?.label.text = loading ? "loading..." : ""
                 }
                 self?.toggleLoading(isLoading: loading)
@@ -47,16 +47,13 @@ class ViewController: BaseViewController<ViewModel> {
             .store(in: &cancellables)
     }
     
+    // MARK: - Actions
+    
     @objc private func didPullToRefresh() {
         viewModel.reload()
         collectionView.refreshControl?.endRefreshing()
     }
-}
-
-
-// MARK: - StableCoinCarouselCellDelegate
-
-extension ViewController: StableCoinCarouselCellDelegate {
+    
     func didSelectStableCoin(_ crypto: CryptoCurrency, in cell: StableCoinCarouselCell) {
         viewModel.selectCoin(crypto)
     }

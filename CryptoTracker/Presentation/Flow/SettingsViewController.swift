@@ -23,36 +23,15 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        
-        viewModel.$refreshRate
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] rate in
-                // TODO: - in vm
-                self?.refreshRateLabel.text = "Refresh every \(rate) sec"
-                self?.refreshRateSlider.setValue(Float(rate), animated: true)
-            }
-            .store(in: &cancellables)
-        
-        viewModel.$appThemeOn
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isOn in
-                self?.appThemeSwitch.isOn = isOn
-                // TODO: - in vm
-                self?.appThemeLabel.text = "Current app theme: \(isOn ? "dark" : "light")"
-            }
-            .store(in: &cancellables)
+        bindViewModel()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationItem.leftBarButtonItem = nil
-        if shouldRemoveItem {
-            shouldRemoveItem = false
-            navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.dropLast()
-        }
-    }
+    // MARK: - Setup
     
     private func setupUI() {
+        navigationItem.leftBarButtonItem = nil
+        navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.dropLast()
+        
         refreshRateSlider.minimumValue = Float(viewModel.minRefreshRate)
         refreshRateSlider.maximumValue = Float(viewModel.maxRefreshRate)
         refreshRateSlider.value = Float(viewModel.refreshRate)
@@ -62,13 +41,33 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
         refreshRateLabel.textAlignment = .center
     }
     
+    private func bindViewModel() {
+        viewModel.$refreshRate
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] rate in
+                self?.refreshRateLabel.text = "Refresh every \(rate) sec"
+                self?.refreshRateSlider.setValue(Float(rate), animated: true)
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$appThemeOn
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isOn in
+                self?.appThemeSwitch.isOn = isOn
+                self?.appThemeLabel.text = "Current app theme: \(isOn ? "dark" : "light")"
+            }
+            .store(in: &cancellables)
+    }
+    
+    // MARK: - Actions
+    
     @objc private func sliderValueChanged(_ sender: UISlider) {
         let stepped = round(sender.value)
         sender.value = stepped
         viewModel.refreshRate = TimeInterval(stepped)
     }
     
-    @IBAction func switchValueDidChange(_ sender: Any) {
+    @IBAction private func switchValueDidChange(_ sender: Any) {
         viewModel.toggleAppTheme()
     }
     
