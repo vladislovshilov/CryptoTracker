@@ -36,15 +36,11 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
             .store(in: &cancellables)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationItem.leftBarButtonItem = nil
-        navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.reversed().dropLast() ?? nil
-    }
-    
     // MARK: Setup
     
     private func setupUI() {
+        navigationItem.leftBarButtonItem = nil
+        navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.reversed().dropLast() ?? nil
         view.backgroundColor = .systemBackground
         setupTableView()
     }
@@ -66,7 +62,7 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     private func fillCell(_ cell: UITableViewCell, coin: FavoriteCurrency) {
         var content = cell.defaultContentConfiguration()
         content.text = "\(coin.name)"
-        content.secondaryText = "$\(coin.currentPrice)"
+        content.secondaryText = "\(coin.currentPrice.prettyCurrency())"
         cell.contentConfiguration = content
         cell.accessoryType = viewModel.isFavorite(coin) ? .checkmark : .none
     }
@@ -121,16 +117,6 @@ extension FavouritesViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 
 extension FavouritesViewController: UITableViewDelegate {
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let offsetY = scrollView.contentOffset.y
-        let contentHeight = scrollView.contentSize.height
-        let height = scrollView.frame.size.height
-        
-        if offsetY > contentHeight - height - 100 {
-            viewModel.loadNextPage()
-        }
-    }
-    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         viewModel.selectCoin(at: indexPath.row)
     }

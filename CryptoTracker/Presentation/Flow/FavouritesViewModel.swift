@@ -26,11 +26,10 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
         self.useCase = useCase
         
         storage.favoritesPublisher
-            .dropFirst()
-//            .removeDuplicates()
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] coins in
-                self?.useCase.load(force: true)
+                self?.favoriteCoins = Array(coins)
+                self?.useCase.load(force: true, isBackground: true)
             }
             .store(in: &cancellables)
     }
@@ -57,10 +56,6 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
         storage.toggle(coin)
     }
     
-    func loadNextPage() {
-//        useCase.loadNextPage()
-    }
-    
     func reload() {
         isLoading = true
         if favoriteCoins.isEmpty {
@@ -74,6 +69,7 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
         isLoading = useCase.isLoading
         
         useCase.coinsPublisher
+            .filter { !$0.isEmpty }
             .combineLatest(storage.favoritesPublisher)
             .map { coins, favorites -> [FavoriteCurrency] in
                 coins

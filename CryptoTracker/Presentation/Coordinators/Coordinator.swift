@@ -36,7 +36,6 @@ class Coordinator {
                 self?.navigationController.showAlert(title: "Error", message: errorMessage)
             }
             .store(in: &cancellables)
-            
     }
 
     func start() {
@@ -92,8 +91,13 @@ class Coordinator {
     }
     
     private func showDetails(for coin: any CryptoModel) {
-        print("Need to show \(coin.name)")
-        navigationController.showAlert(title: "\(coin.name) price ", message: "\(coin.currentPrice) | \(coin.marketCap ?? 0) | \(coin.totalVolume ?? 0)")
+        Task { @MainActor in
+            let viewModel = DetailsViewModel(api: coinGekoAPI, storage: storage, useCase: loadCoinsUseCase, coinID: coin.id)
+            let viewConroller: DetailsViewController = storyboard.instantiateViewController(withIdentifier: .details)
+            viewConroller.viewModel = viewModel
+            bindNavigationButtons(for: viewConroller)
+            navigationController.pushViewController(viewConroller, animated: true)
+        }
     }
 }
 

@@ -36,7 +36,6 @@ final class FavoritesStorage: FavoritesStoring {
     func toggle(_ coin: FavoriteCurrency) {
         let favoritesIDs = favorites.map { $0.id }
         let cointID = coin.id
-        
         if favoritesIDs.contains(cointID) {
             favorites.remove(coin)
         } else {

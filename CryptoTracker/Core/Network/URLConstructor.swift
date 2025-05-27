@@ -19,7 +19,7 @@ final class URLConstructor {
         ]
         
         guard let url = components.url else {
-            throw URLError(.badURL)
+            throw NetworkError.badURL
         }
         
         return url
@@ -27,7 +27,7 @@ final class URLConstructor {
     
     static func makeDetailsURL(baseURL: String, id: String) throws -> URL {
         guard let url = URL(string: "\(baseURL)/coins/\(id)") else {
-            throw URLError(.badURL)
+            throw NetworkError.badURL
         }
         
         return url
@@ -43,7 +43,21 @@ final class URLConstructor {
         ]
 
         guard let url = components.url else {
-            throw URLError(.badURL)
+            throw NetworkError.badURL
+        }
+        
+        return url
+    }
+    
+    static func makeChartURL(baseURL: String, coinID: String, days: Int) throws -> URL {
+        var components = URLComponents(string: "\(baseURL)/coins/\(coinID)/market_chart")!
+        components.queryItems = [
+            URLQueryItem(name: "vs_currency", value: "usd"),
+            URLQueryItem(name: "days", value: "\(days)")
+        ]
+
+        guard let url = components.url else {
+            throw NetworkError.badURL
         }
         
         return url

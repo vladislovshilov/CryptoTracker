@@ -55,7 +55,7 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
     
     func load(force: Bool = false, isBackground: Bool = false) {
         let now = Date()
-        guard force || lastLoadedAt == nil || UInt8(now.timeIntervalSince(lastLoadedAt!)) > UserSettings.refreshRate else {
+        guard force || lastLoadedAt == nil || now.timeIntervalSince(lastLoadedAt!) > TimeInterval(UserSettings.refreshRate) else {
             coinsPublisher.send(coins)
             return
         }
@@ -81,7 +81,7 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
         guard !coins.isEmpty else { return }
         
         let now = Date()
-        guard force || lastPriceUpdateAt == nil || UInt8(now.timeIntervalSince(lastPriceUpdateAt!)) > UserSettings.refreshRate else {
+        guard force || lastPriceUpdateAt == nil || now.timeIntervalSince(lastPriceUpdateAt!) > TimeInterval(UserSettings.refreshRate) else {
             return
         }
         
@@ -126,6 +126,7 @@ extension LoadCoinsUseCase {
             try Task.checkCancellation()
             print("Fetch coins")
             isLoading = true
+            
             let newCoins = try await coinService.fetchCryptos(page: currentPage, perPage: bunchAmount)
             coins = newCoins
             coinsPublisher.send(coins)

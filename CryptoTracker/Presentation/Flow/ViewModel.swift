@@ -10,14 +10,39 @@ import Combine
 
 final class ViewModel: ViewModeling, PriceLogging {
     
-    @Published private(set) var cryptos: [CryptoCurrency] = []
+    enum ListItem: Hashable {
+        case header(String)
+        case crypto(CryptoCurrency)
+        case stableCoinCarousel([CryptoCurrency])
+    }
+    
+    enum Section: Hashable {
+        case header(String)
+        case carousel
+        case cryptoList
+    }
+    
+    @Published private var cryptos: [CryptoCurrency] = []
+    @Published private var stables: [CryptoCurrency] = []
     @Published var filterText: String = ""
     @Published var isLoading = false
     
-    let coinSelection = PassthroughSubject<CryptoCurrency, Never>()
+    var listItemsPublisher: AnyPublisher<[ListItem], Never> {
+        Publishers.CombineLatest($stables, $cryptos)
+            .map { stable, all in
+                var items: [ListItem] = []
+                if !stable.isEmpty {
+                    items.append(.header("Stables"))
+                    items.append(.stableCoinCarousel(stable))
+                }
+                items.append(.header("All"))
+                items.append(contentsOf: all.map { ListItem.crypto($0) })
+                return items
+            }
+            .eraseToAnyPublisher()
+    }
     
-//    private var currentPage = 1
-//    private let perPage = 20
+    let coinSelection = PassthroughSubject<CryptoCurrency, Never>()
     
     private let useCase: CoinLoading
     private let storage: FavoritesStoring
@@ -38,9 +63,20 @@ final class ViewModel: ViewModeling, PriceLogging {
         unbindUseCase()
     }
     
-    func selectCoin(at index: Int) {
-        guard cryptos.indices.contains(index) else { return }
-        let coin = cryptos[index]
+    func reload() {
+        isLoading = true
+        if cryptos.isEmpty {
+            useCase.load(force: true, isBackground: false)
+        } else {
+            useCase.refreshPrices(force: true, isBackground: false)
+        }
+    }
+    
+    func loadNextPage() {
+        // TODO: -
+    }
+    
+    func selectCoin(_ coin: CryptoCurrency) {
         coinSelection.send(coin)
     }
     
@@ -48,11 +84,11 @@ final class ViewModel: ViewModeling, PriceLogging {
         isLoading = useCase.isLoading
         
         useCase.coinsPublisher
-            .sink { [weak self] coins in
-                self?.cryptos = coins
-                self?.populateFavouritesIfNeeded()
+            .sink(receiveValue: { [weak self] coins in
                 self?.isLoading = false
-            }
+                self?.stables = coins.filter { $0.isStableCoin }
+                self?.cryptos = coins
+            })
             .store(in: &cancellables)
         
         useCase.errorPublisher
@@ -65,18 +101,5 @@ final class ViewModel: ViewModeling, PriceLogging {
     
     private func unbindUseCase() {
         cancellables.removeAll()
-    }
-}
-
-// MARK: Temp
-
-extension ViewModel {
-    private func populateFavouritesIfNeeded() {
-        if storage.allFavorites().isEmpty {
-            for i in stride(from: 0, to: cryptos.count, by: 2) {
-                let fetched = cryptos[i]
-                storage.toggle(fetched.toFavouriteModel())
-            }
-        }
     }
 }
