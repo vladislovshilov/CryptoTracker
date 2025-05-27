@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol CryptoModel: Codable, Identifiable, Hashable {
+protocol CryptoModel: Codable, Identifiable, Hashable, Equatable {
     var id: String { get }
     var name: String { get }
     var currentPrice: Double { get set }
@@ -19,5 +19,14 @@ protocol CryptoModel: Codable, Identifiable, Hashable {
 extension CryptoModel {
     var isStableCoin: Bool {
         id == "usd-coin" || id == "tether" || id == "ethereum"
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id) 
+    }
+    
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        print("Comparing \(lhs.id) and \(rhs.id)")
+        return lhs.id == rhs.id
     }
 }

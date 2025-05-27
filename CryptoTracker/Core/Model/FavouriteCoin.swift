@@ -18,3 +18,4 @@ struct FavoriteCurrency: CryptoModel {
         .init(id: id, symbol: "", name: name, image: "", currentPrice: currentPrice, marketCap: marketCap, marketCapRank: nil, totalVolume: totalVolume)
     }
 }
+
