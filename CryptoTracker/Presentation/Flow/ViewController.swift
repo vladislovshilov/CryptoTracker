@@ -41,6 +41,8 @@ class ViewController: BaseViewController<ViewModel>, StableCoinCarouselCellDeleg
             .sink { [weak self] loading in
                 if loading {
                     self?.label.text = loading ? "loading..." : ""
+                } else {
+                    self?.collectionView.refreshControl?.endRefreshing()
                 }
                 self?.toggleLoading(isLoading: loading)
             }

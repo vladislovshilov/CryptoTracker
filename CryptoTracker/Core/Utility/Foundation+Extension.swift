@@ -6,13 +6,23 @@
 //
 
 import Foundation
+import Combine
+
+extension CurrentValueSubject where Output == [CryptoCurrency], Failure == Never {
+    func sorted(by sortOptionPublisher: AnyPublisher<SortOption, Never>) -> AnyPublisher<[CryptoCurrency], Never> {
+        self.combineLatest(sortOptionPublisher)
+            .map { coins, sortOption in
+                coins.sorted(by: sortOption.sort)
+            }
+            .eraseToAnyPublisher()
+    }
+}
 
 extension Collection {
     subscript(safe index: Index) -> Element? {
         return indices.contains(index) ? self[index] : nil
     }
 }
-
 
 extension Double {
     func prettyCurrency(locale: Locale = Locale.current) -> String {

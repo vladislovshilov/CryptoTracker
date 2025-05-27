@@ -31,12 +31,14 @@ final class DetailsViewModel: ViewModeling {
     private var loadChartTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
     
-    init(api: ChartDataLoading, storage: FavoritesStorage, useCase: CoinLoading, coinID: String) {
+    init(api: ChartDataLoading, storage: FavoritesStorage, useCase: CoinLoading, id: String) {
         self.api = api
         self.storage = storage
         self.useCase = useCase
-        id = coinID
-        guard let parsedCoin = useCase.currentCoins().first(where: { $0.id == coinID }) ?? storage.allFavorites().first(where: { $0.id == coinID })?.toCryptoCurrency() else {
+        self.id = id
+        
+        // pick a coin from useCase by id either way pick a coin from storage
+        guard let parsedCoin = useCase.currentCoins().first(where: { $0.id == id }) ?? storage.allFavorites().first(where: { $0.id == id })?.toCryptoCurrency() else {
             isLoading = true
             errorPublisher.send("can't load coin")
             coin = .init(id: "unknown", symbol: "", name: "", image: "", currentPrice: 0, marketCap: nil, marketCapRank: nil, totalVolume: nil)
@@ -56,21 +58,15 @@ final class DetailsViewModel: ViewModeling {
                 self?.isFavourite = favourites.filter({ $0.id == self?.id ?? "" }).first != nil
             }
             .store(in: &cancellables)
+        
+        loadChart(for: selectedTimeframe)
     }
     
-    nonisolated func onAppear() {
-        Task { @MainActor in
-            loadChart(for: selectedTimeframe)
-        }
+    deinit {
+        loadChartTask?.cancel()
+        loadChartTask = nil
     }
-    
-    nonisolated func onDisappear() {
-        Task { @MainActor in
-            loadChartTask?.cancel()
-            loadChartTask = nil
-        }
-    }
-    
+
     func toggleFavourite() {
         storage.toggle(coin.toFavouriteModel())
     }

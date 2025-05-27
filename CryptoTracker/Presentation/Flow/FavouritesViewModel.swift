@@ -18,12 +18,16 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
     
     private let useCase: LoadCoinsUseCase
     private let storage: FavoritesStoring
+    private let settingsObserving: SettingsOberving
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(useCase: LoadCoinsUseCase, storage: FavoritesStoring) {
+    init(useCase: LoadCoinsUseCase, storage: FavoritesStoring, settingsObserving: SettingsOberving) {
         self.storage = storage
         self.useCase = useCase
+        self.settingsObserving = settingsObserving
+        
+        bindUseCase()
         
         storage.favoritesPublisher
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
@@ -34,11 +38,7 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
             .store(in: &cancellables)
     }
     
-    func onAppear() {
-        bindUseCase()
-    }
-    
-    func onDisappear() {
+    deinit {
         unbindUseCase()
     }
     
@@ -69,6 +69,7 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
         isLoading = useCase.isLoading
         
         useCase.coinsPublisher
+            .sorted(by: settingsObserving.sortOption.eraseToAnyPublisher())
             .filter { !$0.isEmpty }
             .combineLatest(storage.favoritesPublisher)
             .map { coins, favorites -> [FavoriteCurrency] in

@@ -8,8 +8,9 @@
 import UIKit
 import Combine
 
-final class SettingsManager: SettingsOberving, SettingsUseCasing {
+final class SettingsManager: SettingsOberving, SettingsService {
     
+    var sortOption:  CurrentValueSubject<SortOption, Never>
     var refreshRate: CurrentValueSubject<UInt8, Never>
     var appTheme: CurrentValueSubject<AppTheme, Never>
     
@@ -22,8 +23,14 @@ final class SettingsManager: SettingsOberving, SettingsUseCasing {
         self.coinLoadingConfiguration = coinLoadingConfiguration
         self.storage = storage
         
+        sortOption = .init(.init(rawValue: Int(UserSettings.sortOption)) ?? .price)
         refreshRate = .init(UserSettings.refreshRate)
         appTheme = .init(AppTheme(rawValue: UserSettings.appTheme) ?? .light)
+    }
+    
+    func changeSortOption(option: SortOption) {
+        UserSettings.sortOption = UInt8(option.rawValue)
+        sortOption.send(option)
     }
     
     func changeRefreshRate(to value: UInt8) {

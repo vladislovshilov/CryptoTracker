@@ -15,11 +15,11 @@ final class SettingsViewModel: ViewModeling {
     let minRefreshRate: UInt8 = UserSettings.minRefreshRate
     let maxRefreshRate: UInt8 = UInt8.max
     
-    private let useCase: SettingsUseCasing
+    private let useCase: SettingsService
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(useCase: SettingsUseCasing) {
+    init(useCase: SettingsService) {
         self.useCase = useCase
         
         $refreshRate
@@ -32,6 +32,10 @@ final class SettingsViewModel: ViewModeling {
             .store(in: &cancellables)
     }
     
+    func changeSortType(to sortOption: SortOption) {
+        
+    }
+
     func toggleAppTheme() {
         useCase.changeAppTheme(to: appThemeOn ? .light : .dark)
         appThemeOn.toggle()

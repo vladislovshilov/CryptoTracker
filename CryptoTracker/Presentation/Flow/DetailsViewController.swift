@@ -102,10 +102,11 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
     // MARK: - Helpers
     
     private func handleFavourite(isFavourite: Bool) {
+        saveButton.setTitle("", for: .normal)
         if isFavourite {
-            saveButton.setTitle("remove", for: .normal)
+            saveButton.setImage(UIImage(systemName: "star.fill"), for: .normal)
         } else {
-            saveButton.setTitle("save", for: .normal)
+            saveButton.setImage(UIImage(systemName: "star"), for: .normal)
         }
     }
     
@@ -122,7 +123,7 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
                 priceChangeLabel.textColor = .systemRed
                 priceChangeLabel.backgroundColor = .systemRed.withAlphaComponent(0.3)
             }
-            priceChangeLabel.text = "\(priceChange)%"
+            priceChangeLabel.text = "\(priceChange.prettyCurrency())%"
         } else {
             priceChangeLabel.isHidden = true
         }

@@ -31,6 +31,7 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
         viewModel.$isLoading
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isLoading in
+                if !isLoading { self?.tableView.refreshControl?.endRefreshing() }
                 self?.toggleLoading(isLoading: isLoading)
             }
             .store(in: &cancellables)

@@ -19,4 +19,7 @@ final class UserSettings: ObservableObject {
     
     @UserDefault(key: "appTheme", defaultValue: AppTheme.light.rawValue)
     static var appTheme: String
+    
+    @UserDefault(key: "sortOption", defaultValue: 0)
+    static var sortOption: UInt8
 }

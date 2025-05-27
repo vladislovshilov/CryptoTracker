@@ -39,7 +39,7 @@ class Coordinator {
     }
 
     func start() {
-        let vm = ViewModel(useCase: loadCoinsUseCase, storage: storage)
+        let vm = ViewModel(useCase: loadCoinsUseCase, settingsObserving: settingsService)
         vm.coinSelection
             .receive(on: DispatchQueue.main)
             .sink { [weak self] coin in
@@ -56,7 +56,7 @@ class Coordinator {
     }
     
     private func showFavourites() {
-        let vm = FavouriteViewModel(useCase: loadCoinsUseCase, storage: storage)
+        let vm = FavouriteViewModel(useCase: loadCoinsUseCase, storage: storage, settingsObserving: settingsService)
         vm.coinSelection
             .receive(on: DispatchQueue.main)
             .sink { [weak self] coin in
@@ -76,10 +76,6 @@ class Coordinator {
         navigationController.pushViewController(vc, animated: true)
     }
     
-    private func showFilters() {
-        print("show filters")
-    }
-    
     private func showSettings() {
         let viewModel = SettingsViewModel(useCase: settingsService)
         let viewController: SettingsViewController = storyboard.instantiateViewController(withIdentifier: .settings)
@@ -92,7 +88,7 @@ class Coordinator {
     
     private func showDetails(for coin: any CryptoModel) {
         Task { @MainActor in
-            let viewModel = DetailsViewModel(api: coinGekoAPI, storage: storage, useCase: loadCoinsUseCase, coinID: coin.id)
+            let viewModel = DetailsViewModel(api: coinGekoAPI, storage: storage, useCase: loadCoinsUseCase, id: coin.id)
             let viewConroller: DetailsViewController = storyboard.instantiateViewController(withIdentifier: .details)
             viewConroller.viewModel = viewModel
             bindNavigationButtons(for: viewConroller)
@@ -105,23 +101,24 @@ class Coordinator {
 
 extension Coordinator {
     private func bindNavigationButtons(for vc: BaseViewController<some ViewModeling>) {
-        vc.filterTap
+        vc.sortTap
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] errorMessage in
-                self?.showFilters()
+            .sink { [weak self] sortOption in
+                self?.settingsService.changeSortOption(option: sortOption)
+//                vc.viewModel.changeSortType(to: sortOption)
             }
             .store(in: &cancellables)
         
         vc.favouriteTap
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] errorMessage in
+            .sink { [weak self] _ in
                 self?.showFavourites()
             }
             .store(in: &cancellables)
         
         vc.settingsTap
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] errorMessage in
+            .sink { [weak self] _ in
                 self?.showSettings()
             }
             .store(in: &cancellables)

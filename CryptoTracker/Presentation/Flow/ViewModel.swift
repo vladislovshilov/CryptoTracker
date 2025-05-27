@@ -45,23 +45,20 @@ final class ViewModel: ViewModeling, PriceLogging {
     let coinSelection = PassthroughSubject<CryptoCurrency, Never>()
     
     private let useCase: CoinLoading
-    private let storage: FavoritesStoring
+    private let settingsObserving: SettingsOberving
     
     private var isLoadingNextPage = false
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(useCase: CoinLoading, storage: FavoritesStoring) {
+    init(useCase: CoinLoading, settingsObserving: SettingsOberving) {
         self.useCase = useCase
-        self.storage = storage
-    }
-    
-    func onAppear() {
+        self.settingsObserving = settingsObserving
         bindUseCase()
         cryptos = useCase.currentCoins()
     }
     
-    func onDisappear() {
+    deinit {
         unbindUseCase()
     }
     
@@ -89,6 +86,7 @@ final class ViewModel: ViewModeling, PriceLogging {
         isLoading = useCase.isLoading
         
         useCase.coinsPublisher
+            .sorted(by: settingsObserving.sortOption.eraseToAnyPublisher())
             .sink(receiveValue: { [weak self] coins in
                 self?.isLoading = false
                 self?.isLoadingNextPage = false
