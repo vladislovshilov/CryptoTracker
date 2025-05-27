@@ -100,7 +100,6 @@ class BaseViewController<ViewModel: ViewModeling>: UIViewController {
             menu: menu
         )
         
-//        let filtersButton = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(filtersBarButtonTapped))
         navigationItem.rightBarButtonItems = [favouritesButton, menuButton]
     }
     

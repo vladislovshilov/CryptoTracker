@@ -42,7 +42,7 @@ extension Double {
 
 extension Optional where Wrapped == Double {
     func prettyCurrency(locale: Locale = Locale.current) -> String {
-        guard let value = self else { return "–" } // or "" or "0,00", depending on your UX
+        guard let value = self else { return "–" }
         return value.prettyCurrency()
     }
 }

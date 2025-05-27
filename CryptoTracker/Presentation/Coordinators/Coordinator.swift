@@ -105,7 +105,6 @@ extension Coordinator {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] sortOption in
                 self?.settingsService.changeSortOption(option: sortOption)
-//                vc.viewModel.changeSortType(to: sortOption)
             }
             .store(in: &cancellables)
         
