@@ -11,6 +11,7 @@ import SwiftUI
 
 class DetailsViewController: BaseViewController<DetailsViewModel> {
 
+    @IBOutlet private weak var marketCupLabel: UILabel!
     @IBOutlet private weak var titleLabel: UILabel!
     @IBOutlet private weak var saveButton: UIButton!
     @IBOutlet private weak var priceChangeLabel: UILabel!
@@ -110,7 +111,7 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
     
     private func handleCoin(_ coin: CryptoCurrency) {
         titleLabel.text = coin.name
-        priceLabel.text = "$\(coin.currentPrice) for 1\(coin.symbol.uppercased())"
+        priceLabel.text = "$\(coin.currentPrice.prettyCurrency()) for 1\(coin.symbol.uppercased())"
         
         if let priceChange = coin.priceChangePercentage24h {
             priceChangeLabel.isHidden = false
@@ -126,7 +127,8 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
             priceChangeLabel.isHidden = true
         }
         
-        totalVolumeLabel.text = "Total Traded Volume: \(coin.totalVolume ?? 0)"
+        marketCupLabel.text = "mrkt cup: \(coin.totalVolume.prettyCurrency())"
+        totalVolumeLabel.text = "Total Traded Volume: \(coin.totalVolume.prettyCurrency())"
         
         handleFavourite(isFavourite: viewModel.isFavourite)
     }

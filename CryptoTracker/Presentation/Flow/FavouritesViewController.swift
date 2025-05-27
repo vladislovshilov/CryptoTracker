@@ -62,7 +62,7 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     private func fillCell(_ cell: UITableViewCell, coin: FavoriteCurrency) {
         var content = cell.defaultContentConfiguration()
         content.text = "\(coin.name)"
-        content.secondaryText = "$\(coin.currentPrice)"
+        content.secondaryText = "\(coin.currentPrice.prettyCurrency())"
         cell.contentConfiguration = content
         cell.accessoryType = viewModel.isFavorite(coin) ? .checkmark : .none
     }

@@ -52,6 +52,6 @@ class SmallCryptoCell: UICollectionViewCell {
 
     func configure(with crypto: CryptoCurrency) {
         nameLabel.text = crypto.name
-        priceLabel.text = String(format: "$%.2f", crypto.currentPrice)
+        priceLabel.text = crypto.currentPrice.prettyCurrency()
     }
 }

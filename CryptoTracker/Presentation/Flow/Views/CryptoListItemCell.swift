@@ -60,6 +60,6 @@ class CryptoListItemCell: UICollectionViewCell {
     func configure(with crypto: CryptoCurrency) {
         nameLabel.text = crypto.name
         symbolLabel.text = crypto.symbol
-        priceLabel.text = String(format: "$%.2f", crypto.currentPrice)
+        priceLabel.text = crypto.currentPrice.prettyCurrency()
     }
 }
