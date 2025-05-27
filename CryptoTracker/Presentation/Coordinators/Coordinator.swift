@@ -92,12 +92,11 @@ class Coordinator {
     }
     
     private func showDetails(for coin: any CryptoModel) {
-        let viewModel = DetailsViewModel(title: coin.name, price: "$\(coin.currentPrice)")
+        let viewModel = DetailsViewModel(favouriteStorage: storage, coinLoadingUseCase: loadCoinsUseCase, coinID: coin.id)
         let viewConroller: DetailsViewController = storyboard.instantiateViewController(withIdentifier: .details)
         viewConroller.viewModel = viewModel
         bindNavigationButtons(for: viewConroller)
         navigationController.pushViewController(viewConroller, animated: true)
-//        navigationController.showAlert(title: "\(coin.name) price ", message: "\(coin.currentPrice) | \(coin.marketCap ?? 0) | \(coin.totalVolume ?? 0)")
     }
 }
 

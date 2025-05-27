@@ -44,9 +44,6 @@ final class ViewModel: ViewModeling, PriceLogging {
     
     let coinSelection = PassthroughSubject<CryptoCurrency, Never>()
     
-//    private var currentPage = 1
-//    private let perPage = 20
-    
     private let useCase: CoinLoading
     private let storage: FavoritesStoring
     
@@ -76,7 +73,7 @@ final class ViewModel: ViewModeling, PriceLogging {
     }
     
     func loadNextPage() {
-//        useCase.loadNextPage()
+        // TODO: -
     }
     
     func selectCoin(_ coin: CryptoCurrency) {
@@ -91,7 +88,6 @@ final class ViewModel: ViewModeling, PriceLogging {
                 self?.isLoading = false
                 self?.stables = coins.filter { $0.isStableCoin }
                 self?.cryptos = coins
-                self?.populateFavouritesIfNeeded()
             })
             .store(in: &cancellables)
         
@@ -105,18 +101,5 @@ final class ViewModel: ViewModeling, PriceLogging {
     
     private func unbindUseCase() {
         cancellables.removeAll()
-    }
-}
-
-// MARK: Temp
-
-extension ViewModel {
-    private func populateFavouritesIfNeeded() {
-        if storage.allFavorites().isEmpty {
-            for i in stride(from: 0, to: cryptos.count, by: 2) {
-                let fetched = cryptos[i]
-                storage.toggle(fetched.toFavouriteModel())
-            }
-        }
     }
 }

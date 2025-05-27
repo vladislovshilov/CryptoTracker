@@ -60,9 +60,12 @@ struct SwiftUIView: View {
 
 class DetailsViewController: BaseViewController<DetailsViewModel> {
 
-    @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var priceLabel: UILabel!
-    @IBOutlet weak var containerView: UIView!
+    @IBOutlet private weak var titleLabel: UILabel!
+    @IBOutlet private weak var saveButton: UIButton!
+    @IBOutlet private weak var priceChangeLabel: UILabel!
+    @IBOutlet private weak var priceLabel: UILabel!
+    @IBOutlet private weak var totalVolumeLabel: UILabel!
+    @IBOutlet private weak var containerView: UIView!
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -70,7 +73,7 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
         super.viewDidLoad()
         navigationItem.leftBarButtonItem = nil
         
-        let vc = UIHostingController(rootView: SwiftUIView(title: viewModel.title))
+        let vc = UIHostingController(rootView: SwiftUIView(title: viewModel.coin.name))
         
         let swiftuiView = vc.view!
         swiftuiView.translatesAutoresizingMaskIntoConstraints = false
@@ -87,19 +90,53 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
 
         vc.didMove(toParent: self)
         
-        
-        viewModel.$title
+        viewModel.$coin
             .receive(on: DispatchQueue.main)
             .sink { [weak self] value in
-                self?.titleLabel.text = value
+                self?.handleCoin(value)
             }
             .store(in: &cancellables)
         
-        viewModel.$price
+        viewModel.$isFavourite
             .receive(on: DispatchQueue.main)
             .sink { [weak self] value in
-                self?.priceLabel.text = value
+                self?.handleFavourite(isFavourite: value)
             }
             .store(in: &cancellables)
+    }
+    
+    @IBAction func saveButtonDidPress(_ sender: Any) {
+        viewModel.toggleFavourite()
+    }
+    
+    private func handleFavourite(isFavourite: Bool) {
+        if isFavourite {
+            saveButton.setTitle("remove", for: .normal)
+        } else {
+            saveButton.setTitle("save", for: .normal)
+        }
+    }
+    
+    private func handleCoin(_ coin: CryptoCurrency) {
+        titleLabel.text = coin.name
+        priceLabel.text = "$\(coin.currentPrice) for 1\(coin.symbol.uppercased())"
+        
+        if let priceChange = coin.priceChangePercentage24h {
+            priceChangeLabel.isHidden = false
+            if priceChange >= 0 {
+                priceChangeLabel.textColor = .systemGreen
+                priceChangeLabel.backgroundColor = .systemGreen.withAlphaComponent(0.3)
+            } else {
+                priceChangeLabel.textColor = .systemRed
+                priceChangeLabel.backgroundColor = .systemRed.withAlphaComponent(0.3)
+            }
+            priceChangeLabel.text = "\(priceChange)%"
+        } else {
+            priceChangeLabel.isHidden = true
+        }
+        
+        totalVolumeLabel.text = "Total Traded Volume: \(coin.totalVolume ?? 0)"
+        
+        handleFavourite(isFavourite: viewModel.isFavourite)
     }
 }
