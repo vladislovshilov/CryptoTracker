@@ -8,69 +8,112 @@
 import Foundation
 import Combine
 
+@MainActor
 final class DetailsViewModel: ViewModeling {
     
-    @Published var coin: CryptoCurrency
-    @Published var isFavourite: Bool = false
-    @Published var data: [MonthlyHoursOfSunshine] = [
-        MonthlyHoursOfSunshine(month: 1, hoursOfSunshine: 74),
-        MonthlyHoursOfSunshine(month: 2, hoursOfSunshine: 99),
-        MonthlyHoursOfSunshine(month: 3, hoursOfSunshine: 11),
-        MonthlyHoursOfSunshine(month: 4, hoursOfSunshine: 62),
-        MonthlyHoursOfSunshine(month: 5, hoursOfSunshine: 68),
-        MonthlyHoursOfSunshine(month: 6, hoursOfSunshine: 44),
-        MonthlyHoursOfSunshine(month: 7, hoursOfSunshine: 55),
-        MonthlyHoursOfSunshine(month: 8, hoursOfSunshine: 88),
-        MonthlyHoursOfSunshine(month: 12, hoursOfSunshine: 99)
-    ]
+    @Published private(set) var coin: CryptoCurrency
+    @Published private(set) var isFavourite: Bool = false
+    @Published private(set) var isLoading: Bool = false
+
+    @Published var chartModel = ChartModel()
+    private var cachedChartModels = Dictionary<Int, ChartModelProxy>()
+    
+    @Published private(set) var selectedTimeframe = 1
+    let timeframes: [Int] = [1, 7, 14, 30, 90, 180, 365]
+    
+    let errorPublisher = PassthroughSubject<String, Never>()
     
     private let id: String
+    private let api: ChartDataLoading
     private let storage: FavoritesStorage
     private let useCase: CoinLoading
     
+    private var loadChartTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
     
-    init(favouriteStorage: FavoritesStorage, coinLoadingUseCase: CoinLoading, coinID: String) {
-        storage = favouriteStorage
-        useCase = coinLoadingUseCase
+    init(api: ChartDataLoading, storage: FavoritesStorage, useCase: CoinLoading, coinID: String) {
+        self.api = api
+        self.storage = storage
+        self.useCase = useCase
         id = coinID
-        coin = coinLoadingUseCase.currentCoins().filter { $0.id == coinID }.first!
+        guard let parsedCoin = useCase.currentCoins().first(where: { $0.id == coinID }) ?? storage.allFavorites().first(where: { $0.id == coinID })?.toCryptoCurrency() else {
+            isLoading = true
+            errorPublisher.send("can't load coin")
+            coin = .init(id: "unknown", symbol: "", name: "", image: "", currentPrice: 0, marketCap: nil, marketCapRank: nil, totalVolume: nil)
+            return
+        }
+        coin = parsedCoin
         
-        useCase.coinsPublisher
+        self.useCase.coinsPublisher
             .sink(receiveValue: { [weak self] coins in
                 guard let updatedCoin = coins.filter({ $0.id == self?.id ?? "" }).first else { return }
                 self?.coin = updatedCoin
             })
             .store(in: &cancellables)
         
-        storage.favoritesPublisher
+        self.storage.favoritesPublisher
             .sink { [weak self] favourites in
                 self?.isFavourite = favourites.filter({ $0.id == self?.id ?? "" }).first != nil
             }
             .store(in: &cancellables)
-        
-//        useCase.errorPublisher
-//            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
-//            .sink { [weak self] errorMessage in
-//                self?.isLoading = false
-//            }
-//            .store(in: &cancellables)
     }
     
-    private func handleCoinUpdate(_ coins: [CryptoCurrency]) {
-        guard let updatedCoin = coins.filter({ $0.id == id }).first else { return }
-        coin = updatedCoin
+    nonisolated func onAppear() {
+        Task { @MainActor in
+            loadChart(for: selectedTimeframe)
+        }
     }
     
-    func onAppear() {
-        
-    }
-    
-    func onDisappear() {
-        
+    nonisolated func onDisappear() {
+        Task { @MainActor in
+            loadChartTask?.cancel()
+            loadChartTask = nil
+        }
     }
     
     func toggleFavourite() {
         storage.toggle(coin.toFavouriteModel())
+    }
+    
+    func selectTimeframe(_ timeframe: Int) {
+        guard timeframes.contains(timeframe) else { return }
+        
+        loadChart(for: timeframe)
+    }
+    
+    // MARK: - Helpers
+    
+    private func loadChart(for timeframe: Int) {
+        if let model = cachedChartModels[timeframe],
+           !model.chartData.isEmpty {
+            DispatchQueue.main.async {
+                self.chartModel.chartData = model.chartData
+                self.chartModel.max = model.max
+                self.chartModel.min = model.min
+                self.selectedTimeframe = timeframe
+            }
+            
+            return
+        }
+        
+        loadChartTask = Task {
+            do {
+                isLoading = true
+                let chartData = try await api.fetchMarketChart(for: coin.id, days: timeframe)
+                let min = chartData.map(\.price).min() ?? 0
+                let max = chartData.map(\.price).max() ?? 0
+                
+                chartModel.min = min - (max - min) / 2
+                chartModel.max =  max + (max - min) / 2
+                chartModel.chartData = chartData
+                selectedTimeframe = timeframe
+                cachedChartModels[timeframe] = ChartModelProxy(model: chartModel)
+            } catch {
+                let networkError = error as? NetworkError ?? .unknown
+                errorPublisher.send(networkError.errorDescription ?? error.localizedDescription)
+            }
+            
+            isLoading = false
+        }
     }
 }

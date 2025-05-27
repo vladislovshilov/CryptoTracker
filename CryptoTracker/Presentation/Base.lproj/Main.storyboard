@@ -101,10 +101,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="8C2-pr-byD">
-                                <rect key="frame" x="16" y="143" width="361" height="180"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" secondItem="8C2-pr-byD" secondAttribute="height" multiplier="2:1" id="heB-T4-88u"/>
-                                </constraints>
+                                <rect key="frame" x="16" y="143" width="361" height="511"/>
                                 <connections>
                                     <segue destination="Cy6-bC-1aZ" kind="embed" id="cHL-jv-wyU"/>
                                 </connections>
@@ -124,7 +121,7 @@
                                         <color key="textColor" systemColor="secondaryLabelColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Total Traded Volume: 1" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3iG-iL-jSI">
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Total Traded Volume: 1" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="3iG-iL-jSI">
                                         <rect key="frame" x="239.66666666666663" y="44" width="137.33333333333337" height="15.666666666666664"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                         <color key="textColor" systemColor="secondaryLabelColor"/>
@@ -172,15 +169,25 @@
                                     <constraint firstAttribute="trailing" secondItem="3iG-iL-jSI" secondAttribute="trailing" constant="16" id="zMP-6b-YzK"/>
                                 </constraints>
                             </view>
+                            <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="LYr-1l-JvX">
+                                <rect key="frame" x="16" y="658" width="361" height="60"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="60" id="4bH-cG-3us"/>
+                                </constraints>
+                            </stackView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="kj5-sp-eEO"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="kj5-sp-eEO" firstAttribute="bottom" secondItem="LYr-1l-JvX" secondAttribute="bottom" constant="100" id="3Nl-WV-SRK"/>
+                            <constraint firstItem="LYr-1l-JvX" firstAttribute="leading" secondItem="kj5-sp-eEO" secondAttribute="leading" constant="16" id="6KE-B9-OhQ"/>
                             <constraint firstItem="8C2-pr-byD" firstAttribute="leading" secondItem="kj5-sp-eEO" secondAttribute="leading" constant="16" id="AfI-Vn-ixE"/>
                             <constraint firstItem="Umv-qW-ypk" firstAttribute="leading" secondItem="kj5-sp-eEO" secondAttribute="leading" id="NRp-I7-0e0"/>
                             <constraint firstItem="8C2-pr-byD" firstAttribute="top" secondItem="Umv-qW-ypk" secondAttribute="bottom" constant="16" id="Tx5-gR-Tud"/>
                             <constraint firstItem="kj5-sp-eEO" firstAttribute="trailing" secondItem="Umv-qW-ypk" secondAttribute="trailing" id="XoE-TU-fi2"/>
+                            <constraint firstItem="kj5-sp-eEO" firstAttribute="trailing" secondItem="LYr-1l-JvX" secondAttribute="trailing" constant="16" id="ejS-2n-eX9"/>
                             <constraint firstItem="Umv-qW-ypk" firstAttribute="top" secondItem="kj5-sp-eEO" secondAttribute="top" id="j6b-Ez-bH3"/>
+                            <constraint firstItem="LYr-1l-JvX" firstAttribute="top" secondItem="8C2-pr-byD" secondAttribute="bottom" constant="4" id="s8j-Nd-E1U"/>
                             <constraint firstItem="kj5-sp-eEO" firstAttribute="trailing" secondItem="8C2-pr-byD" secondAttribute="trailing" constant="16" id="zsC-fD-8Y4"/>
                         </constraints>
                     </view>
@@ -189,6 +196,7 @@
                         <outlet property="priceChangeLabel" destination="RKK-I1-aPt" id="n49-zK-bsb"/>
                         <outlet property="priceLabel" destination="5qj-5z-mdy" id="p9o-Zh-pvK"/>
                         <outlet property="saveButton" destination="dYM-Uk-a4h" id="VWc-RP-Vlh"/>
+                        <outlet property="timeframesContainerView" destination="LYr-1l-JvX" id="zX6-v1-Vyo"/>
                         <outlet property="titleLabel" destination="vm7-zO-3as" id="oLe-K0-3JP"/>
                         <outlet property="totalVolumeLabel" destination="3iG-iL-jSI" id="a0w-83-3y9"/>
                     </connections>

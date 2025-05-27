@@ -13,4 +13,8 @@ struct FavoriteCurrency: CryptoModel {
     let marketCap: Double?
     var currentPrice: Double
     let totalVolume: Double?
+    
+    func toCryptoCurrency() -> CryptoCurrency {
+        .init(id: id, symbol: "", name: name, image: "", currentPrice: currentPrice, marketCap: marketCap, marketCapRank: nil, totalVolume: totalVolume)
+    }
 }

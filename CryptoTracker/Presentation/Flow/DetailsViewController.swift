@@ -8,55 +8,6 @@
 import UIKit
 import Combine
 import SwiftUI
-import Charts
-
-struct MonthlyHoursOfSunshine: Identifiable {
-    var id: Int
-    
-    var date: Date
-    var hoursOfSunshine: Double
-
-    init(month: Int, hoursOfSunshine: Double) {
-        let calendar = Calendar.autoupdatingCurrent
-        self.date = calendar.date(from: DateComponents(year: 2020, month: month))!
-        self.hoursOfSunshine = hoursOfSunshine
-        self.id = month
-    }
-}
-
-struct SwiftUIView: View {
-    var title: String = ""
-    
-    var data: [MonthlyHoursOfSunshine] = [
-        MonthlyHoursOfSunshine(month: 1, hoursOfSunshine: 74),
-        MonthlyHoursOfSunshine(month: 2, hoursOfSunshine: 99),
-        MonthlyHoursOfSunshine(month: 3, hoursOfSunshine: 11),
-        MonthlyHoursOfSunshine(month: 4, hoursOfSunshine: 62),
-        MonthlyHoursOfSunshine(month: 5, hoursOfSunshine: 68),
-        MonthlyHoursOfSunshine(month: 6, hoursOfSunshine: 44),
-        MonthlyHoursOfSunshine(month: 7, hoursOfSunshine: 55),
-        MonthlyHoursOfSunshine(month: 8, hoursOfSunshine: 88),
-        MonthlyHoursOfSunshine(month: 12, hoursOfSunshine: 99)
-    ]
-    
-    var body: some View {
-        ZStack {
-//            Color.pink
-//            Button(title) {
-//                
-//            }
-//            .font(.title)
-//            .buttonStyle(.borderedProminent)
-//            .padding()
-            Chart(data) { el in
-                LineMark(
-                    x: .value("Month", el.date),
-                    y: .value("Hours of Sunshine", el.hoursOfSunshine)
-                )
-            }
-        }
-    }
-}
 
 class DetailsViewController: BaseViewController<DetailsViewModel> {
 
@@ -66,6 +17,9 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
     @IBOutlet private weak var priceLabel: UILabel!
     @IBOutlet private weak var totalVolumeLabel: UILabel!
     @IBOutlet private weak var containerView: UIView!
+    @IBOutlet private weak var timeframesContainerView: UIStackView!
+    
+    private var suiChart: SwiftUIView?
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -81,22 +35,15 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
         navigationItem.leftBarButtonItem = nil
         navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.dropLast()
         
-        let vc = UIHostingController(rootView: SwiftUIView(title: viewModel.coin.name))
+        addSUIChart()
         
-        let swiftuiView = vc.view!
-        swiftuiView.translatesAutoresizingMaskIntoConstraints = false
-
-        addChild(vc)
-        containerView.addSubview(swiftuiView)
-
-        NSLayoutConstraint.activate([
-            swiftuiView.topAnchor.constraint(equalTo: containerView.topAnchor),
-            swiftuiView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-            swiftuiView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-            swiftuiView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-        ])
-
-        vc.didMove(toParent: self)
+        viewModel.timeframes.forEach { timeframe in
+            let button = UIButton(type: .system)
+            button.setTitle("\(timeframe)", for: .normal)
+            button.tag = timeframe
+            button.addTarget(self, action: #selector(timeframeButtonTapped(_:)), for: .touchUpInside)
+            timeframesContainerView.addArrangedSubview(button)
+        }
     }
     
     private func bindViewModel() {
@@ -113,9 +60,39 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
                 self?.handleFavourite(isFavourite: value)
             }
             .store(in: &cancellables)
+        
+        viewModel.$isLoading
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isLoading in
+                self?.timeframesContainerView.isUserInteractionEnabled = !isLoading
+                self?.toggleLoading(isLoading: isLoading)
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$selectedTimeframe
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] timeframe in
+                guard let button = self?.timeframesContainerView.subviews.first(where: { $0.tag == timeframe }) as? UIButton else {
+                    return
+                }
+                self?.timeframesContainerView.subviews.forEach { ($0 as? UIButton)?.isSelected = false }
+                button.isSelected = true
+            }
+            .store(in: &cancellables)
+        
+        viewModel.errorPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] message in
+                self?.showErrorAlert(message)
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Actions
+    
+    @objc private func timeframeButtonTapped(_ sender: UIButton) {
+        viewModel.selectTimeframe(sender.tag)
+    }
     
     @IBAction private func saveButtonDidPress(_ sender: Any) {
         viewModel.toggleFavourite()
@@ -152,5 +129,31 @@ class DetailsViewController: BaseViewController<DetailsViewModel> {
         totalVolumeLabel.text = "Total Traded Volume: \(coin.totalVolume ?? 0)"
         
         handleFavourite(isFavourite: viewModel.isFavourite)
+    }
+    
+    func addSUIChart() {
+        suiChart = SwiftUIView(model: self.viewModel.chartModel)
+        let vc = UIHostingController(rootView: suiChart)
+        
+        let swiftuiView = vc.view!
+        swiftuiView.translatesAutoresizingMaskIntoConstraints = false
+
+        addChild(vc)
+        containerView.addSubview(swiftuiView)
+
+        NSLayoutConstraint.activate([
+            swiftuiView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            swiftuiView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            swiftuiView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            swiftuiView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+        ])
+
+        vc.didMove(toParent: self)
+    }
+    
+    private func showErrorAlert(_ message: String) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }

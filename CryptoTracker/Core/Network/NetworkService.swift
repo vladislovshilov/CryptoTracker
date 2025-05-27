@@ -16,7 +16,7 @@ final class NetworkService: NetworkServiceProtocol {
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw URLError(.badServerResponse)
+            throw NetworkError.unknown
         }
         
         let code = httpResponse.statusCode
