@@ -75,7 +75,7 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
     
     func loadNextPage() {
         currentPage += 1
-        load(force: true)
+        load(force: true, isBackground: true)
     }
     
     func refresh(isBackground: Bool = false) {
