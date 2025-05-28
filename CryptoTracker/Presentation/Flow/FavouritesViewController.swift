@@ -11,8 +11,7 @@ import Combine
 class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     
     @IBOutlet private weak var tableView: UITableView!
-    
-    private var refreshIntervalLabel: UILabel!
+    private let emptyView = EmptyStateView(message: "No coins found")
     
     private var dataSource: UITableViewDiffableDataSource<Int, FavoriteCurrency>!
     private var cancellables = Set<AnyCancellable>()
@@ -25,26 +24,24 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] coins in
                 self?.updateSnapshot(with: coins.map { $0 })
+                self?.updateEmptyState(isEmpty: coins.isEmpty)
             }
             .store(in: &cancellables)
         
         viewModel.$isLoading
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isLoading in
+                if !isLoading { self?.tableView.refreshControl?.endRefreshing() }
                 self?.toggleLoading(isLoading: isLoading)
             }
             .store(in: &cancellables)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationItem.leftBarButtonItem = nil
-        navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.reversed().dropLast() ?? nil
-    }
-    
     // MARK: Setup
     
     private func setupUI() {
+        navigationItem.leftBarButtonItem = nil
+        navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.reversed().dropLast() ?? nil
         view.backgroundColor = .systemBackground
         setupTableView()
     }
@@ -66,7 +63,7 @@ class FavouritesViewController: BaseViewController<FavouriteViewModel> {
     private func fillCell(_ cell: UITableViewCell, coin: FavoriteCurrency) {
         var content = cell.defaultContentConfiguration()
         content.text = "\(coin.name)"
-        content.secondaryText = "$\(coin.currentPrice)"
+        content.secondaryText = "\(coin.currentPrice.prettyCurrency())"
         cell.contentConfiguration = content
         cell.accessoryType = viewModel.isFavorite(coin) ? .checkmark : .none
     }
@@ -92,6 +89,16 @@ extension FavouritesViewController {
         snapshot.appendItems(coins)
         dataSource.apply(snapshot, animatingDifferences: true)
     }
+    
+    private func updateEmptyState(isEmpty: Bool) {
+        if isEmpty {
+            tableView.backgroundView = emptyView
+            tableView.separatorStyle = .none
+        } else {
+            tableView.backgroundView = nil
+            tableView.separatorStyle = .singleLine
+        }
+    }
 }
 
 // MARK: - UITableViewDataSource
@@ -111,16 +118,6 @@ extension FavouritesViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 
 extension FavouritesViewController: UITableViewDelegate {
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let offsetY = scrollView.contentOffset.y
-        let contentHeight = scrollView.contentSize.height
-        let height = scrollView.frame.size.height
-        
-        if offsetY > contentHeight - height - 100 {
-            viewModel.loadNextPage()
-        }
-    }
-    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         viewModel.selectCoin(at: indexPath.row)
     }

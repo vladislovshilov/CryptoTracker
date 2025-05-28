@@ -7,7 +7,4 @@
 
 import Foundation
 
-@objc protocol ViewModeling {
-    @objc optional func onAppear()
-    @objc optional func onDisappear()
-}
+protocol ViewModeling { }

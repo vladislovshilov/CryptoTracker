@@ -8,29 +8,32 @@
 import Foundation
 import Combine
 
+///
+/// Этот сервис используется как единый source of truth для получения списка монет
+/// Дополнительно инкапсулирует в себя автоматическое обновление как всего списка, так и цен (fetch по ids)
+/// *coinsPublisher* каждый раз эмитит новые значения, вью модели слушают его
+///
+
 final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging {
     
-    var errorMessage: String = "" {
-        didSet {
-            errorPublisher.send(errorMessage)
-        }
-    }
+    var isLoading = false
 
     var coinsPublisher = CurrentValueSubject<[CryptoCurrency], Never>([])
     var errorPublisher = CurrentValueSubject<String?, Never>(nil)
     
     private let queue = DispatchQueue(label: "coins.queue")
     
+    private let coinService: CoinGeckoAPI
+    
+    private var coins: Set<CryptoCurrency> = []
+    private var lastLoadedAt: Date?
+    private var lastPriceUpdateAt: Date?
+    private var error: NetworkError?
+    
     private(set) var currentPage = 0
     private var bunchAmount = 20
     private var canLoadMore = true
-    
-    private var coins: [CryptoCurrency] = []
-    private var lastLoadedAt: Date?
-    private var lastPriceUpdateAt: Date?
-    
-    private let coinService: CoinGeckoAPI
-    
+
     private var refreshTask: Task<Void, Never>?
     private var refreshTimer: AnyCancellable?
     
@@ -51,39 +54,40 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
     func currentCoins() -> [CryptoCurrency] {
         var result: [CryptoCurrency] = []
         queue.sync {
-            result = self.coins
+            result = Array(self.coins)
         }
         return result
     }
     
-    func load(force: Bool = false) {
+    func load(force: Bool = false, isBackground: Bool = false) {
         let now = Date()
-        guard force || lastLoadedAt == nil || UInt8(now.timeIntervalSince(lastLoadedAt!)) > UserSettings.refreshRate else {
-            coinsPublisher.send(coins)
+        guard force || lastLoadedAt == nil || now.timeIntervalSince(lastLoadedAt!) > TimeInterval(UserSettings.refreshRate) else {
+            coinsPublisher.send(Array(coins))
             return
         }
         
         refreshTask?.cancel()
         refreshTask = nil
         refreshTask = Task {
-            await fetchCoins()
+            await fetchCoins(isBackground: isBackground)
         }
     }
     
     func loadNextPage() {
         currentPage += 1
-        load(force: true)
+        load(force: true, isBackground: true)
     }
     
-    func refresh() {
-        load(force: true)
+    func refresh(isBackground: Bool = false) {
+        load(force: true, isBackground: isBackground)
     }
     
-    func refreshPrices(force: Bool = false) {
+    func refreshPrices(force: Bool = false, isBackground: Bool = false) {
+        defer { isLoading = false }
         guard !coins.isEmpty else { return }
         
         let now = Date()
-        guard force || lastPriceUpdateAt == nil || UInt8(now.timeIntervalSince(lastPriceUpdateAt!)) > UserSettings.refreshRate else {
+        guard force || lastPriceUpdateAt == nil || now.timeIntervalSince(lastPriceUpdateAt!) > TimeInterval(UserSettings.refreshRate) else {
             return
         }
         
@@ -93,17 +97,20 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
             do {
                 try Task.checkCancellation()
                 print("Refreshin only prices")
-                
+                isLoading = true
                 let ids = coins.map { $0.id }
                 let updated = try await coinService.fetchPrices(for: ids)
-                coins = updated
-                coinsPublisher.send(coins)
+                coins.formUnion(updated)
+                coinsPublisher.send(Array(coins))
                 
                 lastPriceUpdateAt = Date()
-                logUpdated(updated, for: coins)
+                logUpdated(updated, for: Array(coins))
             } catch {
                 print("and getting error")
-                errorMessage = "Failed to update prices: \(error.localizedDescription)"
+                self.error = error as? NetworkError ?? .unknown
+                if !isBackground {
+                    errorPublisher.send(self.error?.errorDescription)
+                }
             }
         }
     }
@@ -118,19 +125,27 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
 // MARK: - Helpers
 
 extension LoadCoinsUseCase {
-    private func fetchCoins() async {
+    private func fetchCoins(isBackground: Bool = false) async {
+        defer { isLoading = false }
+        
         do {
             try Task.checkCancellation()
             print("Fetch coins")
+            isLoading = true
+            
             let newCoins = try await coinService.fetchCryptos(page: currentPage, perPage: bunchAmount)
-            coins = newCoins
-            coinsPublisher.send(coins)
+            currentPage += 1
+            coins.formUnion(newCoins)
+            coinsPublisher.send(Array(coins))
             
             lastLoadedAt = Date()
-            logUpdated(coins, for: coins.map { $0 })
+            logUpdated(Array(coins), for: Array(coins).map { $0 })
         } catch {
             print("and getting error")
-            errorMessage = "Failed to update coins: \(error)"
+            self.error = error as? NetworkError ?? .unknown
+            if !isBackground {
+                errorPublisher.send(self.error?.errorDescription)
+            }
         }
     }
 }
@@ -144,16 +159,20 @@ extension LoadCoinsUseCase {
             .publish(every: TimeInterval(UserSettings.refreshRate), on: .current, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
-                if self?.coins.isEmpty ?? true {
-                    self?.refresh()
-                } else {
-                    self?.refreshPrices()
-                }
+                self?.autorefresh()
             }
     }
     
     private func stopAutoRefresh() {
         refreshTimer?.cancel()
         refreshTimer = nil
+    }
+    
+    private func autorefresh() {
+        if coins.isEmpty {
+            refresh(isBackground: true)
+        } else {
+            refreshPrices(isBackground: true)
+        }
     }
 }

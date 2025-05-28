@@ -23,7 +23,25 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        bindViewModel()
+    }
+    
+    // MARK: - Setup
+    
+    private func setupUI() {
+        navigationItem.leftBarButtonItem = nil
+        navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.dropLast()
         
+        refreshRateSlider.minimumValue = Float(viewModel.minRefreshRate)
+        refreshRateSlider.maximumValue = Float(viewModel.maxRefreshRate)
+        refreshRateSlider.value = Float(viewModel.refreshRate)
+        refreshRateSlider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
+        
+        refreshRateLabel.font = .systemFont(ofSize: 16)
+        refreshRateLabel.textAlignment = .center
+    }
+    
+    private func bindViewModel() {
         viewModel.$refreshRate
             .receive(on: DispatchQueue.main)
             .sink { [weak self] rate in
@@ -41,24 +59,7 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
             .store(in: &cancellables)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationItem.leftBarButtonItem = nil
-        if shouldRemoveItem {
-            shouldRemoveItem = false
-            navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.dropLast()
-        }
-    }
-    
-    private func setupUI() {
-        refreshRateSlider.minimumValue = Float(viewModel.minRefreshRate)
-        refreshRateSlider.maximumValue = Float(viewModel.maxRefreshRate)
-        refreshRateSlider.value = Float(viewModel.refreshRate)
-        refreshRateSlider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
-        
-        refreshRateLabel.font = .systemFont(ofSize: 16)
-        refreshRateLabel.textAlignment = .center
-    }
+    // MARK: - Actions
     
     @objc private func sliderValueChanged(_ sender: UISlider) {
         let stepped = round(sender.value)
@@ -66,7 +67,7 @@ class SettingsViewController: BaseViewController<SettingsViewModel> {
         viewModel.refreshRate = TimeInterval(stepped)
     }
     
-    @IBAction func switchValueDidChange(_ sender: Any) {
+    @IBAction private func switchValueDidChange(_ sender: Any) {
         viewModel.toggleAppTheme()
     }
     

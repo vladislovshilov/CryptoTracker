@@ -15,32 +15,30 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
     @Published var filterText: String = ""
     
     let coinSelection = PassthroughSubject<any CryptoModel, Never>()
-    let errorMessage = PassthroughSubject<String, Never>()
     
-    private let useCase: CoinLoading
+    private let useCase: LoadCoinsUseCase
     private let storage: FavoritesStoring
+    private let settingsObserving: SettingsOberving
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(useCase: CoinLoading, storage: FavoritesStoring) {
+    init(useCase: LoadCoinsUseCase, storage: FavoritesStoring, settingsObserving: SettingsOberving) {
         self.storage = storage
         self.useCase = useCase
+        self.settingsObserving = settingsObserving
+        
+        bindUseCase()
         
         storage.favoritesPublisher
-            .dropFirst()
-            .removeDuplicates()
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] coins in
-                self?.useCase.load(force: true)
+                self?.favoriteCoins = Array(coins)
+                self?.useCase.load(force: true, isBackground: true)
             }
             .store(in: &cancellables)
     }
     
-    func onAppear() {
-        bindUseCase()
-    }
-    
-    func onDisappear() {
+    deinit {
         unbindUseCase()
     }
     
@@ -58,10 +56,6 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
         storage.toggle(coin)
     }
     
-    func loadNextPage() {
-//        useCase.loadNextPage()
-    }
-    
     func reload() {
         isLoading = true
         if favoriteCoins.isEmpty {
@@ -72,7 +66,11 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
     }
     
     private func bindUseCase() {
+        isLoading = useCase.isLoading
+        
         useCase.coinsPublisher
+            .sorted(by: settingsObserving.sortOption.eraseToAnyPublisher())
+            .filter { !$0.isEmpty }
             .combineLatest(storage.favoritesPublisher)
             .map { coins, favorites -> [FavoriteCurrency] in
                 coins
@@ -91,7 +89,6 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
         useCase.errorPublisher
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] errorMessage in
-                self?.errorMessage.send(errorMessage ?? "no error")
                 self?.isLoading = false
             }
             .store(in: &cancellables)

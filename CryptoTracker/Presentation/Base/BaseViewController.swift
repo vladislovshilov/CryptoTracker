@@ -12,7 +12,7 @@ class BaseViewController<ViewModel: ViewModeling>: UIViewController {
     
     let settingsTap = PassthroughSubject<Void, Never>()
     let favouriteTap = PassthroughSubject<Void, Never>()
-    let filterTap = PassthroughSubject<Void, Never>()
+    let sortTap = PassthroughSubject<SortOption, Never>()
     
     var popVC: (() -> Void)?
     
@@ -32,16 +32,6 @@ class BaseViewController<ViewModel: ViewModeling>: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBarButtons()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        viewModel.onAppear?()
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        viewModel.onDisappear?()
     }
     
     func toggleLoading(isLoading: Bool) {
@@ -85,8 +75,32 @@ class BaseViewController<ViewModel: ViewModeling>: UIViewController {
         navigationItem.leftBarButtonItem = settingsButton
         
         let favouritesButton = UIBarButtonItem(barButtonSystemItem: .bookmarks, target: self, action: #selector(favouritesBarButtonTapped))
-        let filtersButton = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(filtersBarButtonTapped))
-        navigationItem.rightBarButtonItems = [favouritesButton, filtersButton]
+        
+        let sortByName = UIAction(title: "Sort by Volume", image: UIImage(systemName: "textformat")) { action in
+            self.filtersBarButtonTapped(.volume)
+        }
+
+        let sortByPrice = UIAction(title: "Sort by Price", image: UIImage(systemName: "dollarsign.circle")) { action in
+            self.filtersBarButtonTapped(.price)
+        }
+        
+        let sortByGain = UIAction(title: "Most Gainers (24h)", image: UIImage(systemName: "arrow.up")) { action in
+            self.filtersBarButtonTapped(.mostGainers)
+        }
+
+        let sortByLose = UIAction(title: "Most Loosers (24h)", image: UIImage(systemName: "arrow.down")) { action in
+            self.filtersBarButtonTapped(.mostLoosers)
+        }
+        
+        let menu = UIMenu(title: "Sort Options", children: [sortByName, sortByPrice, sortByGain, sortByLose])
+        let menuButton = UIBarButtonItem(
+            title: nil,
+            image: UIImage(systemName: "arrow.up.arrow.down"),
+            primaryAction: nil,
+            menu: menu
+        )
+        
+        navigationItem.rightBarButtonItems = [favouritesButton, menuButton]
     }
     
     
@@ -100,9 +114,9 @@ class BaseViewController<ViewModel: ViewModeling>: UIViewController {
         favouriteTap.send()
     }
     
-    @objc private func filtersBarButtonTapped() {
+    private func filtersBarButtonTapped(_ sortOption: SortOption) {
         print("filters bar button tapped")
-        filterTap.send()
+        sortTap.send(sortOption)
     }
 
 }

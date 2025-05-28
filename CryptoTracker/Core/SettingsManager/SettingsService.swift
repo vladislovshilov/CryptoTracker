@@ -17,8 +17,9 @@ protocol UserDefaultsCleaning {
 }
 
 protocol SettingsOberving {
+    var sortOption: CurrentValueSubject<SortOption, Never> { get }
     var refreshRate: CurrentValueSubject<UInt8, Never> { get }
     var appTheme: CurrentValueSubject<AppTheme, Never> { get }
 }
 
-typealias SettingsUseCasing = CoinLoadingConfiguring & AppThemeConfiguring & UserDefaultsCleaning
+typealias SettingsService = CoinLoadingConfiguring & AppThemeConfiguring & UserDefaultsCleaning
