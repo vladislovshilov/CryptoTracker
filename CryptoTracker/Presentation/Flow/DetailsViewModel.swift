@@ -23,6 +23,9 @@ final class DetailsViewModel: ViewModeling {
     
     let errorPublisher = PassthroughSubject<String, Never>()
     
+    /// API  часто выдает 429 много раз подряд, чтобы не показывать ошибку на переходе на детали, добавлен этот флаг
+    private var isFirstLoad = true
+    
     private let id: String
     private let api: ChartDataLoading
     private let storage: FavoritesStorage
@@ -46,19 +49,7 @@ final class DetailsViewModel: ViewModeling {
         }
         coin = parsedCoin
         
-        self.useCase.coinsPublisher
-            .sink(receiveValue: { [weak self] coins in
-                guard let updatedCoin = coins.filter({ $0.id == self?.id ?? "" }).first else { return }
-                self?.coin = updatedCoin
-            })
-            .store(in: &cancellables)
-        
-        self.storage.favoritesPublisher
-            .sink { [weak self] favourites in
-                self?.isFavourite = favourites.filter({ $0.id == self?.id ?? "" }).first != nil
-            }
-            .store(in: &cancellables)
-        
+        bindUseCase()
         loadChart(for: selectedTimeframe)
     }
     
@@ -78,6 +69,21 @@ final class DetailsViewModel: ViewModeling {
     }
     
     // MARK: - Helpers
+    
+    private func bindUseCase() {
+        useCase.coinsPublisher
+            .sink(receiveValue: { [weak self] coins in
+                guard let updatedCoin = coins.filter({ $0.id == self?.id ?? "" }).first else { return }
+                self?.coin = updatedCoin
+            })
+            .store(in: &cancellables)
+        
+        storage.favoritesPublisher
+            .sink { [weak self] favourites in
+                self?.isFavourite = favourites.filter({ $0.id == self?.id ?? "" }).first != nil
+            }
+            .store(in: &cancellables)
+    }
     
     private func loadChart(for timeframe: Int) {
         if let model = cachedChartModels[timeframe],
@@ -105,11 +111,14 @@ final class DetailsViewModel: ViewModeling {
                 selectedTimeframe = timeframe
                 cachedChartModels[timeframe] = ChartModelProxy(model: chartModel)
             } catch {
-                let networkError = error as? NetworkError ?? .unknown
-                errorPublisher.send(networkError.errorDescription ?? error.localizedDescription)
+                if !isFirstLoad {
+                    let networkError = error as? NetworkError ?? .unknown
+                    errorPublisher.send(networkError.errorDescription ?? error.localizedDescription)
+                }
             }
             
             isLoading = false
+            isFirstLoad = false
         }
     }
 }

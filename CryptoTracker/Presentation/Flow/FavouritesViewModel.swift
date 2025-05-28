@@ -16,13 +16,13 @@ final class FavouriteViewModel: ViewModeling, PriceLogging {
     
     let coinSelection = PassthroughSubject<any CryptoModel, Never>()
     
-    private let useCase: LoadCoinsUseCase
+    private let useCase: CoinLoading
     private let storage: FavoritesStoring
     private let settingsObserving: SettingsOberving
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(useCase: LoadCoinsUseCase, storage: FavoritesStoring, settingsObserving: SettingsOberving) {
+    init(useCase: CoinLoading, storage: FavoritesStoring, settingsObserving: SettingsOberving) {
         self.storage = storage
         self.useCase = useCase
         self.settingsObserving = settingsObserving

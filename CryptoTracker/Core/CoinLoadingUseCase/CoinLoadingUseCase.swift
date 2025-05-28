@@ -82,7 +82,9 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
         load(force: true, isBackground: isBackground)
     }
     
-    func refreshPrices(force: Bool = false, isBackground: Bool = false) {
+    
+    // жалко у апи нету ендпоинта на обновление только цен...
+    func refreshPrices(for ids: [String] = [], force: Bool = false, isBackground: Bool = false) {
         defer { isLoading = false }
         guard !coins.isEmpty else { return }
         
@@ -98,9 +100,9 @@ final class LoadCoinsUseCase: CoinLoading, CoinLoadingConfiguring, PriceLogging 
                 try Task.checkCancellation()
                 print("Refreshin only prices")
                 isLoading = true
-                let ids = coins.map { $0.id }
+                let ids = ids.isEmpty ? coins.map { $0.id } : ids
                 let updated = try await coinService.fetchPrices(for: ids)
-                coins.formUnion(updated)
+                coins.update(with: Set(updated))
                 coinsPublisher.send(Array(coins))
                 
                 lastPriceUpdateAt = Date()

@@ -25,5 +25,15 @@ protocol CoinLoading: ErrorRepresentable {
     func load(force: Bool, isBackground: Bool)
     func loadNextPage()
     func refresh(isBackground: Bool)
-    func refreshPrices(force: Bool, isBackground: Bool)
+    func refreshPrices(for ids: [String], force: Bool, isBackground: Bool)
+}
+
+extension CoinLoading {
+    func load(force: Bool = false, isBackground: Bool = false) {
+        load(force: force, isBackground: isBackground)
+    }
+    
+    func refreshPrices(for ids: [String] = [], force: Bool = false, isBackground: Bool = false) {
+        refreshPrices(for: ids, force: force, isBackground: isBackground)
+    }
 }

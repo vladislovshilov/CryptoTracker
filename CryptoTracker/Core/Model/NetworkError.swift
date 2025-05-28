@@ -19,30 +19,30 @@ enum NetworkError: Error {
     case unknown
     
     var errorDescription: String? {
-            switch self {
-            case .badURL:
-                return "The URL is invalid."
-            case .requestFailed(let error):
-                return "Request failed with error: \(error.localizedDescription)"
-            case .invalidResponse:
-                return "Invalid response from the server."
-            case .statusCode(let code):
-                if code == 429 {
-                    return "Ooops...to much requests. Wait a bit..."
-                }
-                return "Something went wrong. Unexpected status code: \(code)."
-            case .noData:
-                return "No data was returned from the server."
-            case .decodingFailed(let error):
-                return "Failed to decode the data: \(error.localizedDescription)"
-            case .timeout:
-                return "The request timed out."
-            case .unauthorized:
-                return "You are not authorized to perform this request."
-            case .unknown:
-                return "An unknown error occurred."
+        switch self {
+        case .badURL:
+            return "The URL is invalid."
+        case .requestFailed(let error):
+            return "Request failed with error: \(error.localizedDescription)"
+        case .invalidResponse:
+            return "Invalid response from the server."
+        case .statusCode(let code):
+            if code == 429 {
+                return "Ooops...to much requests. Wait a bit..."
             }
+            return "Something went wrong. Unexpected status code: \(code)."
+        case .noData:
+            return "No data was returned from the server."
+        case .decodingFailed(let error):
+            return "Failed to decode the data: \(error.localizedDescription)"
+        case .timeout:
+            return "The request timed out."
+        case .unauthorized:
+            return "You are not authorized to perform this request."
+        case .unknown:
+            return "An unknown error occurred."
         }
+    }
 }
 
 extension NetworkError {

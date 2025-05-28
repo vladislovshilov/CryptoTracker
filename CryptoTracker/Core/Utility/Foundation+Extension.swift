@@ -8,6 +8,14 @@
 import Foundation
 import Combine
 
+extension Set where Element: Identifiable {
+    mutating func update(with newElements: Set<Element>) {
+        let newIDs = newElements.map { $0.id }
+        self = filter { !newIDs.contains($0.id) }
+        formUnion(newElements)
+    }
+}
+
 extension CurrentValueSubject where Output == [CryptoCurrency], Failure == Never {
     func sorted(by sortOptionPublisher: AnyPublisher<SortOption, Never>) -> AnyPublisher<[CryptoCurrency], Never> {
         self.combineLatest(sortOptionPublisher)
